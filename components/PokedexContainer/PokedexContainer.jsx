@@ -7,7 +7,6 @@ const Container = styled.div`
     overflow: auto;
     border: 1px solid #999999;
     border-radius: 10px;
-    margin-bottom: 1rem;
     ::-webkit-scrollbar {
         width: 10px;
     }

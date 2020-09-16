@@ -7,7 +7,19 @@ const PageContainer = styled.div`
     flex-direction: column;
     min-height: 100vh;
     overflow-x: hidden;
+    background: url('/static/cover.jpg');
+    background-repeat: repeat;
 `
+
+const Wrapper = styled.div`
+    width: 90%;
+    margin: 0 auto;
+    background: rgba(245, 245, 245, 0.9);
+    padding: 1em 0;
+    @media (max-width: 768px) {
+        width: 100%;
+    }
+`;
 const Footer = styled.footer`
     margin-top: auto;
     background-color: #232323;
@@ -42,10 +54,10 @@ const Layout = ({ children }) => {
 
     return (
         <PageContainer>
-            <main>
-                <Header />
+            <Header />
+            <Wrapper>
                 {children}
-            </main>
+            </Wrapper>
             <Footer>
                 <FooterText>Powered by
                 <Link href={'https://nextjs.org/'}>

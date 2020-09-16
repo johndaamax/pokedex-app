@@ -1,6 +1,8 @@
 import Head from 'next/head'
+import Link from 'next/link'
 
 import Layout from '../components/Layout/Layout'
+
 
 const About = () => {
     return (
@@ -8,12 +10,18 @@ const About = () => {
             <Head>
                 <title>About</title>
             </Head>
-            <h1>About page</h1>
-            <div class="content">
-                <h1>A webpage</h1>
 
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam pretium augue quis augue ornare tempor. Donec eu purus vitae nisi eleifend euismod. Nullam sem nunc, bibendum tempor iaculis eu, consequat in sem. Phasellus nec molestie orci. Fusce varius nisi est, non aliquet dolor porttitor non. Aliquam eu ante nec massa pulvinar posuere. Praesent consectetur porttitor ipsum, eget viverra urna ultricies et.</p>
-                <p>Quisque vehicula neque a enim dignissim, et vestibulum orci viverra. Pellentesque aliquam feugiat interdum. Ut molestie vitae lacus in eleifend. Sed scelerisque urna ut elit venenatis suscipit. Nullam nec urna vel enim mattis interdum ut consequat libero. Proin in imperdiet orci. Vivamus felis lacus, dictum ac eros eu, malesuada pretium nisi. Cras suscipit nunc magna, a egestas neque facilisis sed.</p></div>
+            <h1>About page</h1>
+            <p>
+                Developed by: johndaamax
+            </p>
+            <p>
+                Github link: <Link href='https://github.com/johndaamax'><a>Github</a></Link>
+            </p>
+
+            <p>
+                Source code of the project! Give it a star if you'd like: <Link href='https://github.com/johndaamax/pokedex-app'><a>Link</a></Link>
+            </p>
         </Layout>
     )
 }

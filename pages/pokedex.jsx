@@ -2,22 +2,22 @@ import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import styled from 'styled-components';
+import _ from 'lodash'
 
 import Layout from '../components/Layout/Layout';
 import PokedexContainer from '../components/PokedexContainer/PokedexContainer';
 import { useAppContext } from '../context/AppProvider';
 
 import Image from '../util/Image/Image';
+import CustomInput from '../components/CustomInput/CustomInput'
 
 const Main = styled.section`
     width: 50%;
     margin: 0 auto;
-    padding-top: 2rem;
-    padding-left: 0.5rem;
-    padding-right: 0.5rem;
+    padding: 0.5rem;
     border-radius: 10px;
     transition: width 0.5s ease;
-
+    background: #fff;
     h2, h4 {
         text-align: center;
         margin: 0;
@@ -35,10 +35,12 @@ const Main = styled.section`
 `
 
 const Recents = styled.section`
-    width: 70%;
+    width: max-content;
+    max-width: 60%;
     border-radius: 10px;
+    background: #fff;
     padding: 0.4em;
-    margin: 1em auto;
+    margin: 0 auto;
     text-align: center;
     h4 {
         margin: 0;
@@ -78,7 +80,6 @@ const Recents = styled.section`
                 width: 25%;
             } 
         }
-       
     }
 `
 
@@ -87,10 +88,10 @@ const InputContainer = styled.div`
     justify-content: center;
     align-items: center;
     flex-direction: column;
-    margin-top: 1em;
+    padding: 1em 0;
 `
 
-const Input = styled.input`
+const Input = styled(CustomInput)`
     margin: 0 auto;
     padding: 0.2em 1em;
     width: 200px;
@@ -126,15 +127,15 @@ const Pokedex = ({ pokemon }) => {
         }
     }, [])
 
-    const filterListData = (e) => {
-        const inputValue = e.target.value.toLowerCase();
-        setSearchValue(inputValue);
-        clearTimeout(timer);
-        let timer = setTimeout(() => {
-            const newList = pokemon.results.filter(poke => poke.name.includes(inputValue) || poke.url.split('/')[6].includes(inputValue))
+    const searchPoke = (value) => {
+        if (value) {
+            const newList = pokemon.results.filter(poke => poke.name.includes(value) || poke.url.split('/')[6].includes(value))
             setpkmList(newList);
-        }, 1000 || 0);
+        } else {
+            setpkmList(pokemon.results);
+        }
     }
+
     return (
         <Layout>
             <Head>
@@ -160,7 +161,7 @@ const Pokedex = ({ pokemon }) => {
             }
             <InputContainer>
                 <span>Search</span>
-                <Input type='text' placeholder='Search by name or ID' value={searchValue} onChange={filterListData} />
+                <Input placeholder='Search by name or ID' searchPoke={searchPoke} />
             </InputContainer>
             <Main>
                 <h2>Pokedex</h2>
