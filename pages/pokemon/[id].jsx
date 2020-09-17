@@ -89,13 +89,11 @@ const NavAdjacentSection = styled.section`
         }
     }
 `
-
 const PokeDetails = styled.div`
     display: flex;
     width: 100%;
     min-width: 440px;
     height: 80%;
-    padding: 0.5rem;
     border-radius: 4px;
     flex-flow: row wrap;
 
@@ -103,9 +101,8 @@ const PokeDetails = styled.div`
         min-width: 320px;
     }
 `
-
 const ImageContainer = styled.div`
-    flex-basis: 280px;
+    flex-basis: 255px;
     min-width: 240px;
     margin: 0 auto;
     display: flex;
@@ -133,7 +130,6 @@ const FlavorText = styled.div`
         margin: 0;
     }
 `
-
 const TypeDiv = styled.div`
     background: ${props => typeColors[props.type]};
     color: #FFF;
@@ -177,7 +173,6 @@ const Summary = styled.div`
         min-width: 90%;  
     } 
 `
-
 const AbilityDiv = styled.div`
     text-transform: capitalize;
     font-size: 12px;

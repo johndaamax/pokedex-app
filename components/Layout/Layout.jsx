@@ -10,7 +10,6 @@ const PageContainer = styled.div`
     background: url('/static/cover.jpg');
     background-repeat: repeat;
 `
-
 const Wrapper = styled.div`
     width: 90%;
     margin: 0 auto;
@@ -18,6 +17,9 @@ const Wrapper = styled.div`
     padding: 1em 0;
     @media (max-width: 768px) {
         width: 100%;
+    }
+    @media (min-width: 768px) {
+        padding: 0.5rem 1rem;
     }
 `;
 const Footer = styled.footer`

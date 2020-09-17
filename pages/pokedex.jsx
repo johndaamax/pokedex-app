@@ -12,7 +12,7 @@ import Image from '../util/Image/Image';
 import CustomInput from '../components/CustomInput/CustomInput'
 
 const Main = styled.section`
-    width: 50%;
+    width: 60%;
     margin: 0 auto;
     padding: 0.5rem;
     border-radius: 10px;
@@ -22,11 +22,6 @@ const Main = styled.section`
         text-align: center;
         margin: 0;
     }
-
-    @media (max-width: 1024px) {
-        width: 65%;
-        min-width: 380px;
-    } 
 
     @media (max-width: 768px) {
         width: 80%;
