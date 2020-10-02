@@ -1,6 +1,6 @@
 import { useState, useContext, createContext } from 'react'
 
-const AppContext = createContext();
+const AppContext = createContext({});
 
 export const AppProvider = ({ children }) => {
     const [allPokemon, setAllPokemon] = useState([]);
@@ -14,15 +14,13 @@ export const AppProvider = ({ children }) => {
         setRecentList(list);
     }
 
-    const context = {
-        allPokemon,
-        handlePokemonData,
-        recentList,
-        handleRecentList
-    };
-
     return (
-        <AppContext.Provider value={context}>
+        <AppContext.Provider value={{
+            allPokemon: allPokemon,
+            recentList: recentList,
+            handlePokemonData: handlePokemonData,
+            handleRecentList: handleRecentList
+        }}>
             {children}
         </AppContext.Provider>
     );

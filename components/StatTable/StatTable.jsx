@@ -6,7 +6,7 @@ import {
     typeColors,
     pokemonBackgroundColors,
     statBackgroundColors
-} from '../../util/styles'
+} from '../../styles/styles'
 
 const TableWrapper = styled.table`
     margin: 2rem auto 1rem auto;

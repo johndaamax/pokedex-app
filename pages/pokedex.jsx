@@ -5,11 +5,13 @@ import styled from 'styled-components';
 import _ from 'lodash'
 
 import Layout from '../components/Layout/Layout';
+import { Wrapper } from '../styles/shared'
 import PokedexContainer from '../components/PokedexContainer/PokedexContainer';
 import { useAppContext } from '../context/AppProvider';
-
 import Image from '../util/Image/Image';
 import CustomInput from '../components/CustomInput/CustomInput'
+
+import { fetchAllPokemon } from '../api/api'
 
 const Main = styled.section`
     width: 60%;
@@ -31,7 +33,7 @@ const Main = styled.section`
 
 const Recents = styled.section`
     width: max-content;
-    max-width: 60%;
+    max-width: 65%;
     border-radius: 10px;
     background: #fff;
     padding: 0.4em;
@@ -56,10 +58,12 @@ const Recents = styled.section`
             flex-direction: column;
             border: 1px solid #a0a0a0;
             border-radius: 7px;
-            transition: box-shadow 0.2s ease;
+            transition: all 0.3s ease;
             &:hover {
                 box-shadow: 0 2px 3px 1px rgba(21,21,21,0.9);
                 cursor: pointer;
+                color: #fff;
+                background: #232323;
             }
             
             img {
@@ -107,7 +111,6 @@ const Pokedex = ({ pokemon }) => {
 
     const context = useAppContext();
     const { allPokemon, handlePokemonData, recentList } = context;
-    console.log(pkmList)
     useEffect(() => {
         // if context is empty, populate the appropriate fields with data from SSR
         if (pokemon.results.length > 0) {
@@ -133,41 +136,43 @@ const Pokedex = ({ pokemon }) => {
 
     return (
         <Layout>
-            <Head>
-                <title>Pokedex</title>
-            </Head>
-            {recentList && recentList.length > 0 &&
-                <Recents>
-                    <h4>Recently searched</h4>
-                    <div className='container'>
-                        {recentList.map(pkmn => (
-                            <Link href={`/pokemon/${pkmn.id}`}>
-                                <a className='item'>
-                                    <Image
-                                        src={pkmn.sprites.front_default}
-                                        fallbackSrc='/static/missing.png'
-                                        alt={`${pkmn.name} Sprite`} />
-                                    <span>{pkmn.name}</span>
-                                </a>
-                            </Link>
-                        ))}
-                    </div>
-                </Recents>
-            }
-            <InputContainer>
-                <span>Search</span>
-                <Input placeholder='Search by name or ID' searchPoke={searchPoke} />
-            </InputContainer>
-            <Main>
-                <h2>Pokedex</h2>
-                {pokemon && <PokedexContainer list={pkmList} />}
-            </Main>
+            <Wrapper>
+                <Head>
+                    <title>Pokedex</title>
+                </Head>
+                {recentList && recentList.length > 0 &&
+                    <Recents>
+                        <h4>Recently searched</h4>
+                        <div className='container'>
+                            {recentList.map(pkmn => (
+                                <Link href={`/pokemon/${pkmn.id}`}>
+                                    <a className='item'>
+                                        <Image
+                                            src={pkmn.sprites.front_default}
+                                            fallbackSrc='/static/missing.png'
+                                            alt={`${pkmn.name} Sprite`} />
+                                        <span>{pkmn.name}</span>
+                                    </a>
+                                </Link>
+                            ))}
+                        </div>
+                    </Recents>
+                }
+                <InputContainer>
+                    <span>Search</span>
+                    <Input placeholder='Search by name or ID' searchPoke={searchPoke} />
+                </InputContainer>
+                <Main>
+                    <h2>Pokedex</h2>
+                    {pokemon && <PokedexContainer list={pkmList} />}
+                </Main>
+            </Wrapper>
         </Layout>
     )
 }
 
 Pokedex.getInitialProps = async () => {
-    const pokemon = await (await fetch(`https://pokeapi.co/api/v2/pokemon?limit=999`)).json();
+    const pokemon = await fetchAllPokemon();
     return { pokemon }
 }
 

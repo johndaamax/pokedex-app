@@ -1,19 +1,23 @@
 import Head from 'next/head'
 import Link from 'next/link'
 import { useEffect } from 'react'
+import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import _ from 'lodash'
 
 import Layout from '../../components/Layout/Layout'
+import { Wrapper } from '../../styles/shared'
 import InfoBox from '../../components/InfoBox/InfoBox'
 import StatTable from '../../components/StatTable/StatTable'
-
 import Image from '../../util/Image/Image'
 import {
     typeColors,
     pokemonBackgroundColors,
-} from '../../util/styles'
+    wrapperBackgroundColors
+} from '../../styles/styles'
 import { useAppContext } from '../../context/AppProvider';
+
+import { fetchPokeBaseData } from '../../api/api'
 import { isObjectInArray } from '../../util/helpers';
 
 const PokeName = styled.p`
@@ -185,6 +189,7 @@ const AbilityDiv = styled.div`
 
 const Pokemon = ({ pokemon, species, id }) => {
     const primaryBackground = pokemonBackgroundColors[pokemon.types[0].type.name];
+    const wrapperBackground = wrapperBackgroundColors[pokemon.types[0].type.name];
     const secondaryBorder = (pokemon.types[1] && pokemonBackgroundColors[pokemon.types[1].type.name]) || '#777777';
     //numbers for previous, current and next pokemon - note that these are off by 1 when looking in arrays since they start from 0
     const
@@ -192,8 +197,15 @@ const Pokemon = ({ pokemon, species, id }) => {
         currentPoke = +id,
         nextPoke = +id + 1;
 
-    const context = useAppContext();
-    const { allPokemon, recentList, handleRecentList } = context;
+    const router = useRouter();
+
+    const { allPokemon, recentList, handleRecentList } = useAppContext();
+    useEffect(() => {
+        //if empty pokemon array, redirect to pokedex page
+        if (allPokemon.length === 0) {
+            router.push('/pokedex');
+        }
+    }, [])
 
     useEffect(() => {
         if (!isObjectInArray(recentList, pokemon))
@@ -221,94 +233,97 @@ const Pokemon = ({ pokemon, species, id }) => {
 
     return (
         <Layout>
-            <Head>
-                <title>Overview of {_.capitalize(pokemon.name)}</title>
-            </Head>
-            <PokeName>{pokemon.name} <span className='id'>#{pokemon.id}</span></PokeName>
-            <NavAdjacentSection>
-                <div className="prev">
-                    {allPokemon[previousPoke - 1] &&
-                        <Link href={`/pokemon/${previousPoke}`}>
-                            <a>
-                                <figure>
-                                    <span className='number'>#{previousPoke}</span>
-                                    <span className='name'>{allPokemon[previousPoke - 1].name}</span>
-                                    <Image
-                                        source={getPokeImageURLByNumber(previousPoke)}
-                                        fallbackSrc={pokemon.sprites.front_default}
-                                    />
-                                </figure>
-                            </a>
-                        </Link>
-                    }
-                </div>
-                <div className="next">
-                    {allPokemon[nextPoke - 1] &&
-                        <Link href={`/pokemon/${nextPoke}`}>
-                            <a>
-                                <figure>
-                                    <span className='number'>#{nextPoke}</span>
-                                    <span className='name'>{allPokemon[nextPoke - 1].name}</span>
-                                    <Image
-                                        source={getPokeImageURLByNumber(nextPoke)}
-                                        fallbackSrc={pokemon.sprites.front_default}
-                                    />
-                                </figure>
-                            </a>
-                        </Link>
-                    }
-                </div>
-            </NavAdjacentSection>
-            <PokeDetails>
-                <ImageContainer>
-                    <PokeImage
-                        source={getPokeImageURLByNumber(currentPoke)}
-                        fallbackSrc={pokemon.sprites.front_default}
-                        alt={pokemon.name} />
-                    <FlavorText>
-                        <p><strong>Description:</strong></p>
-                        {getFlavorText(species)[0]}
-                    </FlavorText>
-                </ImageContainer>
-
-                <Summary color={primaryBackground} border={secondaryBorder}>
-                    <div className='attributes'>
-                        <InfoBox type="Type">{pokemon.types.map(t => <TypeDiv type={t.type.name} key={t.slot}>{t.type.name}</TypeDiv>)}</InfoBox>
-                        <InfoBox type='Abilities'>
-                            {pokemon.abilities.length > 0 ? pokemon.abilities.map(a =>
-                                <AbilityDiv
-                                    key={a.slot}>
-                                    {a.ability.name}
-                                    {a.is_hidden && <small style={{ marginTop: '0.5rem' }}>Hidden Ability</small>}
-                                </AbilityDiv>) :
-                                <AbilityDiv>
-                                    Unknown
-                                    </AbilityDiv>
-                            }
-                        </InfoBox>
-                        <div className='minor'>
-                            <InfoBox type='Height'>{pokemon.height ? `${pokemon.height / 10.0}m` : 'Unknown'}</InfoBox>
-                            <InfoBox type='Weight'>{pokemon.weight ? `${pokemon.weight / 10.0}kg` : 'Unknown'}</InfoBox>
-                        </div>
-                        <div className='minor'>
-                            <InfoBox type='Base Exp'>{pokemon?.base_experience || 'Unknown'}</InfoBox>
-                            <InfoBox type='Lvl rate'>{_.capitalize(_.startCase(species.growth_rate?.name || 'Unknown'))}</InfoBox>
-                        </div>
-                        <div className='minor'>
-                            <InfoBox type='Pokedex color' >{_.capitalize(species.color?.name || 'Unknown')}</InfoBox>
-                            <InfoBox type='Base friendship' >{species?.base_happiness || 'Unknown'}</InfoBox>
-                        </div>
+            <Wrapper color={wrapperBackground}>
+                <Head>
+                    <title>Overview of {_.capitalize(pokemon.name)}</title>
+                </Head>
+                <PokeName>{pokemon.name} <span className='id'>#{pokemon.id}</span></PokeName>
+                <NavAdjacentSection>
+                    <div className="prev">
+                        {allPokemon[previousPoke - 1] &&
+                            <Link href={`/pokemon/${previousPoke}`}>
+                                <a>
+                                    <figure>
+                                        <span className='number'>#{previousPoke}</span>
+                                        <span className='name'>{allPokemon[previousPoke - 1].name}</span>
+                                        <Image
+                                            source={getPokeImageURLByNumber(previousPoke)}
+                                            fallbackSrc={pokemon.sprites.front_default}
+                                        />
+                                    </figure>
+                                </a>
+                            </Link>
+                        }
                     </div>
-                    {pokemon.stats && pokemon.stats.length > 0 && <StatTable pokemon={pokemon} />}
-                </Summary>
-            </PokeDetails>
-        </Layout >
+                    <div className="next">
+                        {allPokemon[nextPoke - 1] &&
+                            <Link href={`/pokemon/${nextPoke}`}>
+                                <a>
+                                    <figure>
+                                        <span className='number'>#{nextPoke}</span>
+                                        <span className='name'>{allPokemon[nextPoke - 1].name}</span>
+                                        <Image
+                                            source={getPokeImageURLByNumber(nextPoke)}
+                                            fallbackSrc={pokemon.sprites.front_default}
+                                        />
+                                    </figure>
+                                </a>
+                            </Link>
+                        }
+                    </div>
+                </NavAdjacentSection>
+                <PokeDetails>
+                    <ImageContainer>
+                        <PokeImage
+                            source={getPokeImageURLByNumber(currentPoke)}
+                            fallbackSrc={pokemon.sprites.front_default}
+                            alt={pokemon.name} />
+                        <FlavorText>
+                            <p><strong>Description:</strong></p>
+                            {getFlavorText(species)[0]}
+                        </FlavorText>
+                    </ImageContainer>
+
+                    <Summary color={primaryBackground} border={secondaryBorder}>
+                        <div className='attributes'>
+                            <InfoBox type="Type">{pokemon.types.map(t => <TypeDiv type={t.type.name} key={t.slot}>{t.type.name}</TypeDiv>)}</InfoBox>
+                            <InfoBox type='Abilities'>
+                                {pokemon.abilities.length > 0 ? pokemon.abilities.map(a =>
+                                    <AbilityDiv
+                                        key={a.slot}>
+                                        {a.ability.name}
+                                        {a.is_hidden && <small style={{ marginTop: '0.5rem' }}>Hidden Ability</small>}
+                                    </AbilityDiv>) :
+                                    <AbilityDiv>
+                                        Unknown
+                                    </AbilityDiv>
+                                }
+                            </InfoBox>
+                            <div className='minor'>
+                                <InfoBox type='Height'>{pokemon.height ? `${pokemon.height / 10.0}m` : 'Unknown'}</InfoBox>
+                                <InfoBox type='Weight'>{pokemon.weight ? `${pokemon.weight / 10.0}kg` : 'Unknown'}</InfoBox>
+                            </div>
+                            <div className='minor'>
+                                <InfoBox type='Base Exp'>{pokemon?.base_experience || 'Unknown'}</InfoBox>
+                                <InfoBox type='Lvl rate'>{_.capitalize(_.startCase(species.growth_rate?.name || 'Unknown'))}</InfoBox>
+                            </div>
+                            <div className='minor'>
+                                <InfoBox type='Pokedex color' >{_.capitalize(species.color?.name || 'Unknown')}</InfoBox>
+                                <InfoBox type='Base friendship' >{species?.base_happiness || 'Unknown'}</InfoBox>
+                            </div>
+                        </div>
+                        {pokemon.stats && pokemon.stats.length > 0 && <StatTable pokemon={pokemon} />}
+                    </Summary>
+                </PokeDetails>
+            </Wrapper>
+        </Layout>
     )
 }
 
-Pokemon.getInitialProps = async ({ query }) => {
+Pokemon.getInitialProps = async (ctx) => {
+    const { query } = ctx;
     const id = query.id;
-    const pokemon = await (await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`)).json();
+    const pokemon = await fetchPokeBaseData(id);
     const species = await (await fetch(pokemon.species.url)).json();
     return { pokemon, species, id };
 }

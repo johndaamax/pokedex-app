@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router'
 
 import Layout from '../components/Layout/Layout'
+import { Wrapper } from '../styles/shared'
 import Image from '../util/Image/Image'
 
 const ErrorContainer = styled.div`
@@ -69,19 +70,21 @@ const Error = () => {
 
     return (
         <Layout>
-            <Head>
-                <title>Error</title>
-            </Head>
-            <ErrorContainer>
-                <Image source='/static/error.png' alt='404-image' />
-                <h1 className='jumbo'>404</h1>
-                <h2 className='jumbo-desc'>Pokemon not found</h2>
-                <p className='fluff-text'>It seems that the page you were looking for could not be found!</p>
-                <div className='links'>
-                    <Link href='/'><a>Home</a></Link>
-                    <span onClick={() => router.back()}>Go Back</span>
-                </div>
-            </ErrorContainer>
+            <Wrapper>
+                <Head>
+                    <title>Error</title>
+                </Head>
+                <ErrorContainer>
+                    <Image source='/static/error.png' alt='404-image' />
+                    <h1 className='jumbo'>404</h1>
+                    <h2 className='jumbo-desc'>Pokemon not found</h2>
+                    <p className='fluff-text'>It seems that the page you were looking for could not be found!</p>
+                    <div className='links'>
+                        <Link href='/'><a>Home</a></Link>
+                        <span onClick={() => router.back()}>Go Back</span>
+                    </div>
+                </ErrorContainer>
+            </Wrapper>
         </Layout>
     )
 }

@@ -3,7 +3,7 @@ import Link from 'next/link'
 
 const Container = styled.div`
     max-height: 70vh;
-    padding: 0.2rem 0.7rem;
+    padding: 0.2rem 1rem;
     overflow: auto;
     border: 1px solid #999999;
     border-radius: 10px;
@@ -45,10 +45,12 @@ const Item = styled.p`
 `
 
 const PokedexContainer = ({ list }) => {
-
   return (
     <Container>
-      {list.map((item, i) => <Link key={i} href={`${item.url.substr(item.url.indexOf('/pokemon/'))}`}><Item>#{`${item.url.substr(item.url.indexOf('/pokemon/')).replace(/[^0-9]/g, '')}`} {item.name}</Item></Link>)}
+      {list.map((item, i) =>
+        <Link key={i} href={`${item.url.substr(item.url.indexOf('/pokemon/'))}`}>
+          <Item>#{`${item.url.substr(item.url.indexOf('/pokemon/')).replace(/[^0-9]/g, '')}`} {item.name}</Item>
+        </Link>)}
     </Container>
   )
 }
