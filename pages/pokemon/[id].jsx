@@ -1,6 +1,6 @@
 import Head from 'next/head'
 import Link from 'next/link'
-import { useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import _ from 'lodash'
@@ -19,16 +19,28 @@ import { useAppContext } from '../../context/AppProvider';
 
 import { fetchPokeBaseData } from '../../api/api'
 import { isObjectInArray } from '../../util/helpers';
+import { getIdFromURL } from '../../util/helpers'
+import Select from '../../util/Select/Select'
 
-const PokeName = styled.p`
-    text-align: center;
+
+const PokeName = styled.div`
+    display: flex;
+    justify-content: center;
+    align-items: center;
     margin: 0.5rem auto;
+    > p {
+        margin: 0;
+    }
     text-transform: capitalize;
     font-size: 28px;
     .id {
-        margin-left: 1rem;
+        margin-right: 0.5rem;
         font-weight: bold;
     }
+    @media (max-width: 768px) {
+        font-size: 20px;
+    }
+
 `;
 
 const NavAdjacentSection = styled.section`
@@ -106,13 +118,9 @@ const PokeDetails = styled.div`
     }
 `
 const ImageContainer = styled.div`
-    flex-basis: 255px;
+    width: 255px;
     min-width: 240px;
     margin: 0 auto;
-    display: flex;
-    flex-flow: row wrap;
-    justify-content: center;
-    max-height: 360px;
     
     @media (max-width: 768px) {
         margin: 0 auto 1em;
@@ -120,16 +128,16 @@ const ImageContainer = styled.div`
     }
 `
 const PokeImage = styled(Image)`
-    width: 100%;
-    height: auto;
-    max-width: 250px;
+    max-height: 250px;
     border-radius: 7px;
     background: #fff;
     padding: 0.5em;
 `
 const FlavorText = styled.div`
+    background-color: #fff;
+    border-radius: 10px;
     margin-top: 0.5em;
-    padding: 0.5em 0;
+    padding: 0.5rem;
     > p {
         margin: 0;
     }
@@ -187,19 +195,23 @@ const AbilityDiv = styled.div`
     }
 `
 
-const Pokemon = ({ pokemon, species, id }) => {
+const Pokemon = ({ pokemon }) => {
+    const router = useRouter();
+    const [form, setForm] = useState(1);
+    const { allPokemon, recentList, handleRecentList } = useAppContext();
+
     const primaryBackground = pokemonBackgroundColors[pokemon.types[0].type.name];
     const wrapperBackground = wrapperBackgroundColors[pokemon.types[0].type.name];
     const secondaryBorder = (pokemon.types[1] && pokemonBackgroundColors[pokemon.types[1].type.name]) || '#777777';
     //numbers for previous, current and next pokemon - note that these are off by 1 when looking in arrays since they start from 0
     const
-        previousPoke = +id - 1,
-        currentPoke = +id,
-        nextPoke = +id + 1;
+        previousPoke = +pokemon.national_number - 1,
+        currentPoke = +pokemon.national_number,
+        nextPoke = +pokemon.national_number + 1;
 
-    const router = useRouter();
+    const pokemonForms = pokemon.varieties.map(item =>
+        ({ value: `/pokemon/${getIdFromURL(item.url)}`, label: item.name, form: item.form }))
 
-    const { allPokemon, recentList, handleRecentList } = useAppContext();
     useEffect(() => {
         //if empty pokemon array, redirect to pokedex page
         if (allPokemon.length === 0) {
@@ -215,29 +227,52 @@ const Pokemon = ({ pokemon, species, id }) => {
         handleRecentList(recentList);
     }, [pokemon])
 
-    const getPokeImageURLByNumber = number => {
-        return `https://assets.pokemon.com/assets/cms2/img/pokedex/full/${number < 999 ? number.toLocaleString('en-US', { minimumIntegerDigits: 3 }) : number}.png`;
+    useEffect(() => {
+        if (pokemonForms.length === 1 && form !== 1)
+            setForm(1);
+    }, [pokemon])
+
+    const getPokeImageURLByNumber = (number, form = 1) => {
+        // form 1 is the default form, for every alternate form it increases by 1
+        const numberFormatted = number < 999 ? number.toLocaleString('en-US', { minimumIntegerDigits: 3 }) : number;
+        const isAlternateExtra = form !== 1 ? `_f${form}` : '';
+        return `https://assets.pokemon.com/assets/cms2/img/pokedex/full/${numberFormatted}${isAlternateExtra}.png`;
     }
 
     const getFlavorText = (pokemon, language = 'en') => {
         const { flavor_text_entries } = pokemon;
-        const versions = ['sword', 'shield', 'lets-go-eevee', 'lets-go-pikachu', 'ultra-sun', 'ultra-moon', 'sun', 'moon', 'black-2', 'white-2'];
-        const text = [];
+        const versions = ['sword', 'shield', 'lets-go-eevee', 'lets-go-pikachu', 'ultra-sun', 'ultra-moon', 'sun', 'moon', 'black-2', 'white-2', 'omega-ruby', 'alpha-sapphire', 'x', 'y'];
         for (let version of versions) {
-            const temp = flavor_text_entries.find(entry => entry.language.name === language && entry.version.name === version)
-            if (temp)
-                text.push(temp.flavor_text)
+            const text = flavor_text_entries.find(entry => entry.language.name === language && entry.version.name === version)
+            if (text)
+                return text.flavor_text;
         }
-        return text;
     }
 
+    const handleDropdownChange = (option) => {
+        if (form !== option.form) {
+            setForm(option.form);
+            router.push(option.value);
+        }
+    }
     return (
         <Layout>
             <Wrapper color={wrapperBackground}>
                 <Head>
                     <title>Overview of {_.capitalize(pokemon.name)}</title>
                 </Head>
-                <PokeName>{pokemon.name} <span className='id'>#{pokemon.id}</span></PokeName>
+                <PokeName>
+                    <span className='id'>#{pokemon.national_number}</span>
+                    <p>{pokemon.name}</p>
+                    {pokemonForms.length > 1 &&
+                        <Select
+                            onChange={handleDropdownChange}
+                            defaultTile='Forms'
+                            list={pokemonForms}
+                            placeholder={'Select form...'}
+                        />
+                    }
+                </PokeName>
                 <NavAdjacentSection>
                     <div className="prev">
                         {allPokemon[previousPoke - 1] &&
@@ -275,12 +310,15 @@ const Pokemon = ({ pokemon, species, id }) => {
                 <PokeDetails>
                     <ImageContainer>
                         <PokeImage
-                            source={getPokeImageURLByNumber(currentPoke)}
+                            source={getPokeImageURLByNumber(currentPoke, form)}
                             fallbackSrc={pokemon.sprites.front_default}
                             alt={pokemon.name} />
                         <FlavorText>
-                            <p><strong>Description:</strong></p>
-                            {getFlavorText(species)[0]}
+
+                            <strong>Description:</strong>
+                            <p>
+                                {getFlavorText(pokemon)}
+                            </p>
                         </FlavorText>
                     </ImageContainer>
 
@@ -305,11 +343,11 @@ const Pokemon = ({ pokemon, species, id }) => {
                             </div>
                             <div className='minor'>
                                 <InfoBox type='Base Exp'>{pokemon?.base_experience || 'Unknown'}</InfoBox>
-                                <InfoBox type='Lvl rate'>{_.capitalize(_.startCase(species.growth_rate?.name || 'Unknown'))}</InfoBox>
+                                <InfoBox type='Lvl rate'>{_.capitalize(_.startCase(pokemon.growth_rate?.name || 'Unknown'))}</InfoBox>
                             </div>
                             <div className='minor'>
-                                <InfoBox type='Pokedex color' >{_.capitalize(species.color?.name || 'Unknown')}</InfoBox>
-                                <InfoBox type='Base friendship' >{species?.base_happiness || 'Unknown'}</InfoBox>
+                                <InfoBox type='Pokedex color' >{_.capitalize(pokemon.color?.name || 'Unknown')}</InfoBox>
+                                <InfoBox type='Base friendship' >{pokemon?.base_happiness || 'Unknown'}</InfoBox>
                             </div>
                         </div>
                         {pokemon.stats && pokemon.stats.length > 0 && <StatTable pokemon={pokemon} />}
@@ -324,8 +362,7 @@ Pokemon.getInitialProps = async (ctx) => {
     const { query } = ctx;
     const id = query.id;
     const pokemon = await fetchPokeBaseData(id);
-    const species = await (await fetch(pokemon.species.url)).json();
-    return { pokemon, species, id };
+    return { pokemon };
 }
 
 export default Pokemon

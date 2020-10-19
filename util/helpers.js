@@ -10,3 +10,11 @@ export const isObjectInArray = (array, target) => {
     }
     return isIn;
 }
+
+export const getIdFromURL = (url) => {
+    //method that extracts the pokemon ID from a URL
+    //ex. extracts the 10103 from the URL 'https://pokeapi.co/api/v2/pokemon/10103/'
+    const arr = _.split(url, '/');
+    const id = arr[arr.length - 2];
+    return id;
+}
