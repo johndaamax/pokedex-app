@@ -18,3 +18,13 @@ export const getIdFromURL = (url) => {
     const id = arr[arr.length - 2];
     return id;
 }
+
+export const truncText = (text = '', max = 350) => {
+    if (!text) return null;
+    if (text.length < max) {
+        return text;
+    }
+    const substr = text.substring(0, max);
+
+    return `${substr.substring(0, substr.lastIndexOf(' ')).trimRight()}...`;
+};

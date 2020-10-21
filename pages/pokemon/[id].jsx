@@ -18,9 +18,9 @@ import {
 import { useAppContext } from '../../context/AppProvider';
 
 import { fetchPokeBaseData } from '../../api/api'
-import { isObjectInArray } from '../../util/helpers';
-import { getIdFromURL } from '../../util/helpers'
+import { isObjectInArray, getIdFromURL, truncText } from '../../util/helpers';
 import Select from '../../util/Select/Select'
+import Tooltip from '../../util/Tooltip/Tooltip'
 
 
 const PokeName = styled.div`
@@ -186,10 +186,18 @@ const Summary = styled.div`
     } 
 `
 const AbilityDiv = styled.div`
-    text-transform: capitalize;
-    font-size: 12px;
+    font-size: 14px;
     margin: 0 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 
+    .ability-text {
+        margin-right: 0.3em;
+        p {
+            margin: 0;
+        }
+    }
     > small {
         display: block;
     }
@@ -247,6 +255,12 @@ const Pokemon = ({ pokemon }) => {
             if (text)
                 return text.flavor_text;
         }
+    }
+
+    const getAbilityText = (ability, language = 'en') => {
+        const { effect_entries } = ability;
+        const text = effect_entries.find(entry => entry.language.name === language)
+        return text.effect || 'Ability description not available in English.';
     }
 
     const handleDropdownChange = (option) => {
@@ -328,9 +342,14 @@ const Pokemon = ({ pokemon }) => {
                             <InfoBox type='Abilities'>
                                 {pokemon.abilities.length > 0 ? pokemon.abilities.map(a =>
                                     <AbilityDiv
-                                        key={a.slot}>
-                                        {a.ability.name}
-                                        {a.is_hidden && <small style={{ marginTop: '0.5rem' }}>Hidden Ability</small>}
+                                        key={a.id}>
+                                        <div className='ability-text'>
+                                            <p>{a.name}</p>
+                                            {a.is_hidden && <small style={{ marginTop: '0.5rem' }}>Hidden Ability</small>}
+                                        </div>
+                                        <Tooltip text={truncText(getAbilityText(a))}>
+                                            <img src='/static/help-18.png' alt='question-tooltip' />
+                                        </Tooltip>
                                     </AbilityDiv>) :
                                     <AbilityDiv>
                                         Unknown

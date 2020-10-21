@@ -14,7 +14,6 @@ const customStyles = {
 
 
 const MySelect = ({ list, onChange, defaultTitle, placeholder = 'Select...' }) => {
-    console.log(list)
     return (
         <Select
             styles={customStyles}

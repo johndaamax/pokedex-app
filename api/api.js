@@ -19,5 +19,10 @@ export const fetchPokeBaseData = async (id) => {
         url: variety.pokemon.url
     }
     ))
-    return { ...data, ...filtered, national_number: +national, varieties: alternates };
+    let abilities = data && data.abilities &&
+        await Promise.all(data.abilities
+            .map(async (ability) => await (await fetch(ability.ability.url)).json())
+        );
+    abilities = abilities.map((ability, idx) => ({ ...ability, is_hidden: data.abilities[idx].is_hidden }));
+    return { ...data, ...filtered, national_number: +national, varieties: alternates, abilities: abilities };
 }
