@@ -145,7 +145,7 @@ const Pokedex = ({ pokemon }) => {
                         <h4>Recently searched</h4>
                         <div className='container'>
                             {recentList.map(pkmn => (
-                                <Link href={`/pokemon/${pkmn.id}`}>
+                                <Link key={pkmn.id} href={`/pokemon/${pkmn.id}`}>
                                     <a className='item'>
                                         <Image
                                             src={pkmn.sprites.front_default}

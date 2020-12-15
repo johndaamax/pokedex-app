@@ -1,6 +1,6 @@
+import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
-import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import styled from 'styled-components'
 import _ from 'lodash'
@@ -18,10 +18,10 @@ import {
 import { useAppContext } from '../../context/AppProvider';
 
 import { fetchPokeBaseData } from '../../api/api'
-import { isObjectInArray, getIdFromURL, truncText } from '../../util/helpers';
+import { isObjectInArray, getIdFromURL, truncText, getGenerationVersionGroups } from '../../util/helpers'
 import Select from '../../util/Select/Select'
 import Tooltip from '../../util/Tooltip/Tooltip'
-
+import CustomTable from '../../components/CustomTable/CustomTable'
 
 const PokeName = styled.div`
     display: flex;
@@ -218,7 +218,8 @@ const Pokemon = ({ pokemon }) => {
         nextPoke = +pokemon.national_number + 1;
 
     const pokemonForms = pokemon.varieties.map(item =>
-        ({ value: `/pokemon/${getIdFromURL(item.url)}`, label: item.name, form: item.form }))
+        ({ value: `/pokemon/${getIdFromURL(item.url)}`, label: item.name, form: item.form }));
+    const { moves } = pokemon;
 
     useEffect(() => {
         //if empty pokemon array, redirect to pokedex page
@@ -269,6 +270,35 @@ const Pokemon = ({ pokemon }) => {
             router.push(option.value);
         }
     }
+
+    const filterMovesLearnedViaMethod = (moves, method = 'level-up') => {
+        const filteredMoves = filterMovesByLatestGeneration(moves);
+        const finalMoveset = filteredMoves.filter(move => move.details.move_learn_method.name === method)
+        return finalMoveset;
+    }
+
+    const filterMovesByLatestGeneration = (moves) => {
+        let latestGen = 8;
+        let result = [];
+        // iterate from latest gen up until first until a moveset is generated
+        while (result.length === 0 && latestGen > 0) {
+            let versionGroups = getGenerationVersionGroups(latestGen);
+            result = moves
+                .filter(move =>
+                    (move.version_group_details.find(item => versionGroups.includes(item.version_group.name)) ? true : false))
+                .reduce((updatedMoves, move) => {
+                    let updatedMove = {
+                        move: move.move,
+                        details: move.version_group_details.find(item => versionGroups.includes(item.version_group.name))
+                    }
+                    updatedMoves.push(updatedMove);
+                    return updatedMoves
+                }, [])
+            latestGen--;
+        }
+        return result;
+    }
+
     return (
         <Layout>
             <Wrapper color={wrapperBackground}>
@@ -277,7 +307,7 @@ const Pokemon = ({ pokemon }) => {
                 </Head>
                 <PokeName>
                     <span className='id'>#{pokemon.national_number}</span>
-                    <p>{pokemon.name}</p>
+                    <p>{_.startCase(pokemon.name)}</p>
                     {pokemonForms.length > 1 &&
                         <Select
                             onChange={handleDropdownChange}
@@ -328,14 +358,12 @@ const Pokemon = ({ pokemon }) => {
                             fallbackSrc={pokemon.sprites.front_default}
                             alt={pokemon.name} />
                         <FlavorText>
-
                             <strong>Description:</strong>
                             <p>
                                 {getFlavorText(pokemon)}
                             </p>
                         </FlavorText>
                     </ImageContainer>
-
                     <Summary color={primaryBackground} border={secondaryBorder}>
                         <div className='attributes'>
                             <InfoBox type="Type">{pokemon.types.map(t => <TypeDiv type={t.type.name} key={t.slot}>{t.type.name}</TypeDiv>)}</InfoBox>
@@ -348,7 +376,7 @@ const Pokemon = ({ pokemon }) => {
                                             {a.is_hidden && <small style={{ marginTop: '0.5rem' }}>Hidden Ability</small>}
                                         </div>
                                         <Tooltip text={truncText(getAbilityText(a))}>
-                                            <img src='/static/help-18.png' alt='question-tooltip' />
+                                            <img src='/static/help-18.png' alt='ability-text-tooltip' />
                                         </Tooltip>
                                     </AbilityDiv>) :
                                     <AbilityDiv>
@@ -361,15 +389,21 @@ const Pokemon = ({ pokemon }) => {
                                 <InfoBox type='Weight'>{pokemon.weight ? `${pokemon.weight / 10.0}kg` : 'Unknown'}</InfoBox>
                             </div>
                             <div className='minor'>
-                                <InfoBox type='Base Exp'>{pokemon?.base_experience || 'Unknown'}</InfoBox>
-                                <InfoBox type='Lvl rate'>{_.capitalize(_.startCase(pokemon.growth_rate?.name || 'Unknown'))}</InfoBox>
+                                <InfoBox type='Base Experience'>{pokemon?.base_experience || 'Unknown'}</InfoBox>
+                                <InfoBox type='Leveling Rate'>{_.startCase(pokemon.growth_rate?.name || 'Unknown')}</InfoBox>
                             </div>
                             <div className='minor'>
-                                <InfoBox type='Pokedex color' >{_.capitalize(pokemon.color?.name || 'Unknown')}</InfoBox>
-                                <InfoBox type='Base friendship' >{pokemon?.base_happiness || 'Unknown'}</InfoBox>
+                                <InfoBox type='Pokedex Color' >{_.startCase(pokemon.color?.name || 'Unknown')}</InfoBox>
+                                <InfoBox type='Base Friendship' >{pokemon?.base_happiness || 'Unknown'}</InfoBox>
                             </div>
                         </div>
                         {pokemon.stats && pokemon.stats.length > 0 && <StatTable pokemon={pokemon} />}
+                        <CustomTable
+                            columns={[
+                                { Header: 'Move Name', accessor: 'move' },
+                                { Header: 'Level', accessor: 'level' }
+                            ]}
+                            data={filterMovesLearnedViaMethod(moves, 'level-up').map(el => ({ move: _.startCase(el.move.name), level: el.details.level_learned_at }))} />
                     </Summary>
                 </PokeDetails>
             </Wrapper>

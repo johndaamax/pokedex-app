@@ -7,7 +7,7 @@ const Container = styled.div`
 `
 
 const Div = styled.div`
-    border: 1px solid black;
+    border: 1px solid hsl(0,0%,80%);
     border-radius: 8px;
     background: #fff;
     display: flex;
