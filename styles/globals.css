@@ -12,3 +12,16 @@ a {
 *, *::before, *::after{
   box-sizing: border-box;
 }
+
+::-webkit-scrollbar {
+  background-color: #252829;
+  color: #A9A298;
+}
+
+::-webkit-scrollbar-corner {
+  background-color: #1D1F20;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #484D50;
+}

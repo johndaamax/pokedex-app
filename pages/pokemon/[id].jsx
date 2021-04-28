@@ -224,7 +224,7 @@ const Pokemon = ({ pokemon }) => {
     useEffect(() => {
         //if empty pokemon array, redirect to pokedex page
         if (state.allPokemon.length === 0) {
-            router.push('/pokedex');
+            router.push('/');
         }
     }, [])
 
@@ -233,10 +233,6 @@ const Pokemon = ({ pokemon }) => {
         if (pokemonForms.length === 1 && form !== 1)
             setForm(1);
     }, [pokemon])
-
-    // useEffect(() => {
-
-    // }, [pokemon])
 
     const getPokeImageURLByNumber = (number, form = 1) => {
         // form 1 is the default form, for every alternate form it increases by 1
@@ -257,8 +253,8 @@ const Pokemon = ({ pokemon }) => {
 
     const getAbilityText = (ability, language = 'en') => {
         const { effect_entries } = ability;
-        const text = effect_entries.find(entry => entry.language.name === language)
-        return text.effect || 'Ability description not available in English.';
+        const text = effect_entries?.find(entry => entry.language.name === language)
+        return text?.effect || 'Ability description not available.';
     }
 
     const handleDropdownChange = (option) => {

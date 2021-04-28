@@ -9,18 +9,14 @@ const Container = styled.div`
     border-radius: 10px;
     ::-webkit-scrollbar {
         width: 10px;
+        background: #DDDDDD;
     }
     ::-webkit-scrollbar-track {
-      box-shadow: inset 0 0 5px grey;
+      box-shadow: inset 0 0 5px #464646;
       border-radius: 10px;
     }
-    
     ::-webkit-scrollbar-thumb {
-      background: #232323;
       border-radius: 10px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #555;
     }
 `
 const Item = styled.p`

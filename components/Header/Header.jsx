@@ -95,7 +95,6 @@ const AppTitle = styled.h1`
   }
 `
 const Nav = styled.nav`
-  //float: right;
   position: relative;
   display: flex;
   padding: 0;
@@ -113,7 +112,7 @@ const Nav = styled.nav`
       display: none;
   }
 `
-const TestLink = styled.a`
+const CustomLink = styled.a`
   color: #FFF;
   text-align: center;
   font-size: 16px;
@@ -147,9 +146,7 @@ const Header = () => {
   const [isVisible, setIsVisible] = useState(false);
 
   const links = [
-    <Link key='home' href='/'><TestLink>Home</TestLink></Link>,
-    <Link key='about' href='/about'><TestLink>About</TestLink></Link>,
-    <Link key='pokedex' href='/pokedex'><TestLink>Pokedex</TestLink></Link>
+    <Link key='home' href='/'><CustomLink>Home</CustomLink></Link>,
   ];
 
   return (
