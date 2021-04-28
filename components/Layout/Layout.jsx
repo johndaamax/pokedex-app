@@ -13,7 +13,7 @@ export const PageContainer = styled.div`
     .wrapper {
         width: 90%;
         margin: 0 auto;
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 25%, rgba(255, 255, 255, 0.90) 50%, rgba(255, 255, 255, 0.85) 75%, rgba(255, 255, 255, 0.8) 100%);
+        background: radial-gradient(180deg, rgba(255, 255, 255, 0.95) 25%, rgba(255, 255, 255, 0.90) 50%, rgba(255, 255, 255, 0.85) 75%, rgba(255, 255, 255, 0.8) 100%);
         padding: 1em 0;
         @media (max-width: 768px) {
             width: 100%;

@@ -15,10 +15,10 @@ import {
     pokemonBackgroundColors,
     wrapperBackgroundColors
 } from '../../styles/styles'
-import { useAppContext } from '../../context/AppProvider';
+import { usePokemonList, updateRecentList } from '../../context/AppProvider';
 
 import { fetchPokeBaseData } from '../../api/api'
-import { isObjectInArray, getIdFromURL, truncText, getGenerationVersionGroups } from '../../util/helpers'
+import { getIdFromURL, truncText, getGenerationVersionGroups } from '../../util/helpers'
 import Select from '../../util/Select/Select'
 import Tooltip from '../../util/Tooltip/Tooltip'
 import CustomTable from '../../components/CustomTable/CustomTable'
@@ -206,7 +206,7 @@ const AbilityDiv = styled.div`
 const Pokemon = ({ pokemon }) => {
     const router = useRouter();
     const [form, setForm] = useState(1);
-    const { allPokemon, recentList, handleRecentList } = useAppContext();
+    const [state, dispatch] = usePokemonList();
 
     const primaryBackground = pokemonBackgroundColors[pokemon.types[0].type.name];
     const wrapperBackground = wrapperBackgroundColors[pokemon.types[0].type.name];
@@ -223,23 +223,20 @@ const Pokemon = ({ pokemon }) => {
 
     useEffect(() => {
         //if empty pokemon array, redirect to pokedex page
-        if (allPokemon.length === 0) {
+        if (state.allPokemon.length === 0) {
             router.push('/pokedex');
         }
     }, [])
 
     useEffect(() => {
-        if (!isObjectInArray(recentList, pokemon))
-            recentList.unshift(pokemon);
-        if (recentList.length > 10)
-            recentList.pop();
-        handleRecentList(recentList);
-    }, [pokemon])
-
-    useEffect(() => {
+        updateRecentList(dispatch, state, pokemon)
         if (pokemonForms.length === 1 && form !== 1)
             setForm(1);
     }, [pokemon])
+
+    // useEffect(() => {
+
+    // }, [pokemon])
 
     const getPokeImageURLByNumber = (number, form = 1) => {
         // form 1 is the default form, for every alternate form it increases by 1
@@ -319,12 +316,12 @@ const Pokemon = ({ pokemon }) => {
                 </PokeName>
                 <NavAdjacentSection>
                     <div className="prev">
-                        {allPokemon[previousPoke - 1] &&
+                        {state.allPokemon[previousPoke - 1] &&
                             <Link href={`/pokemon/${previousPoke}`}>
                                 <a>
                                     <figure>
                                         <span className='number'>#{previousPoke}</span>
-                                        <span className='name'>{allPokemon[previousPoke - 1].name}</span>
+                                        <span className='name'>{state.allPokemon[previousPoke - 1].name}</span>
                                         <Image
                                             source={getPokeImageURLByNumber(previousPoke)}
                                             fallbackSrc={pokemon.sprites.front_default}
@@ -335,12 +332,12 @@ const Pokemon = ({ pokemon }) => {
                         }
                     </div>
                     <div className="next">
-                        {allPokemon[nextPoke - 1] &&
+                        {state.allPokemon[nextPoke - 1] &&
                             <Link href={`/pokemon/${nextPoke}`}>
                                 <a>
                                     <figure>
                                         <span className='number'>#{nextPoke}</span>
-                                        <span className='name'>{allPokemon[nextPoke - 1].name}</span>
+                                        <span className='name'>{state.allPokemon[nextPoke - 1].name}</span>
                                         <Image
                                             source={getPokeImageURLByNumber(nextPoke)}
                                             fallbackSrc={pokemon.sprites.front_default}

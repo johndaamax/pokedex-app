@@ -2,7 +2,7 @@ import App from 'next/app'
 import Head from 'next/head'
 import { ThemeProvider } from 'styled-components'
 
-import { AppProvider } from '../context/AppProvider'
+import { PokemonListProvider } from '../context/AppProvider'
 import '../styles/globals.css';
 
 const theme = {
@@ -15,7 +15,7 @@ export default class MyApp extends App {
     render() {
         const { Component, pageProps } = this.props
         return (
-            <AppProvider>
+            <PokemonListProvider>
                 <Head>
                     <meta name="theme-color" content="#317EFB" />
                     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
@@ -23,7 +23,7 @@ export default class MyApp extends App {
                 <ThemeProvider theme={theme}>
                     <Component {...pageProps} />
                 </ThemeProvider>
-            </AppProvider>
+            </PokemonListProvider>
         )
     }
 }

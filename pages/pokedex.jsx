@@ -7,7 +7,7 @@ import _ from 'lodash'
 import Layout from '../components/Layout/Layout';
 import { Wrapper } from '../styles/shared'
 import PokedexContainer from '../components/PokedexContainer/PokedexContainer';
-import { useAppContext } from '../context/AppProvider';
+import { usePokemonList, setAllPokemonList } from '../context/AppProvider';
 import Image from '../util/Image/Image';
 import CustomInput from '../components/CustomInput/CustomInput'
 
@@ -109,19 +109,18 @@ const Pokedex = ({ pokemon }) => {
     const [pkmList, setpkmList] = useState(pokemon.results);
     const [searchValue, setSearchValue] = useState('');
 
-    const context = useAppContext();
-    const { allPokemon, handlePokemonData, recentList } = context;
+    const [state, dispatch] = usePokemonList();
     useEffect(() => {
         // if context is empty, populate the appropriate fields with data from SSR
         if (pokemon.results.length > 0) {
-            handlePokemonData(pokemon.results)
+            setAllPokemonList(dispatch, pokemon.results)
         }
-    }, [handlePokemonData])
+    }, [])
 
     useEffect(() => {
         //check if context is populated and load data from there
-        if (allPokemon.length > 0) {
-            setpkmList(allPokemon);
+        if (state.allPokemon.length > 0) {
+            setpkmList(state.allPokemon);
         }
     }, [])
 
@@ -140,11 +139,11 @@ const Pokedex = ({ pokemon }) => {
                 <Head>
                     <title>Pokedex</title>
                 </Head>
-                {recentList && recentList.length > 0 &&
+                {state.recentList && state.recentList.length > 0 &&
                     <Recents>
                         <h4>Recently searched</h4>
                         <div className='container'>
-                            {recentList.map(pkmn => (
+                            {state.recentList.map(pkmn => (
                                 <Link key={pkmn.id} href={`/pokemon/${pkmn.id}`}>
                                     <a className='item'>
                                         <Image
