@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -204,8 +204,9 @@ const AbilityDiv = styled.div`
 
 const Pokemon = ({ pokemon }) => {
   const router = useRouter();
-  //state to indicate the pokemon's active form (1 is the default, 2 or higher are alternate forms)
-  const [activePokemonForm, setActivePokemonForm] = useState(1);
+  const [currentSpeciesNumber, setCurrentSpeciesNumber] = useState(pokemon.speciesID);
+  //value to indicate the pokemon's active form (1 is the default, 2 or higher are alternate forms)
+  const pokemonForm = useRef(1);
   const [state, dispatch] = usePokemonList();
   //to console log the pokemon, go to network tab and preview the JSON response
 
@@ -234,6 +235,7 @@ const Pokemon = ({ pokemon }) => {
   } = species;
 
   const transformedFormList = forms.map(({ name, id }, idx) => ({ value: `/pokemon/${id}`, label: name, form: idx + 1 }))
+  const hasAlternateForms = transformedFormList.length > 1;
 
   const primaryBackground = pokemonBackgroundColors[types[0].type.name];
   const wrapperBackground = wrapperBackgroundColors[types[0].type.name];
@@ -247,14 +249,19 @@ const Pokemon = ({ pokemon }) => {
   useEffect(() => {
     const { id, name, spriteFrontURL } = pokemon;
     updateRecentList(dispatch, state, { id, name, spriteFrontURL })
-    if (forms.length === 1 && form !== 1)
-      setActivePokemonForm(1);
+    if (currentSpeciesNumber !== speciesID) {
+      pokemonForm.current = 1;
+      setCurrentSpeciesNumber(speciesID);
+    }
   }, [pokemon])
 
-  const getPokeImageNumber = (number, form = 1) => {
+  const getPokeImageNumber = (number, hasAlternateForms = false, form = 1) => {
     const formattedNum = number.toLocaleString('en-US', { minimumIntegerDigits: 3 });
-    const isAlternate = form !== 1 ? `_f${form}` : '';
-    return `${formattedNum}${isAlternate}`;
+    if (hasAlternateForms) {
+      const isAlternate = form !== 1 ? `_f${form}` : '';
+      return `${formattedNum}${isAlternate}`
+    }
+    return `${formattedNum}`;
   }
 
   const getFlavorText = (flavorTexts) => {
@@ -267,8 +274,9 @@ const Pokemon = ({ pokemon }) => {
   }
 
   const handleDropdownChange = (option) => {
-    if (activePokemonForm !== option.form) {
-      setActivePokemonForm(option.form);
+    if (pokemonForm.current !== option.form) {
+      pokemonForm.current = option.form;
+      // setActivePokemonForm(option.form);
       router.push(option.value);
     }
   }
@@ -300,8 +308,8 @@ const Pokemon = ({ pokemon }) => {
                     <span className='name'>{state.allPokemon[previousPoke - 1].name}</span>
                     <ImageOpt
                       source={`/static/art/${getPokeImageNumber(previousPoke)}.png`}
-                      width={32}
-                      height={32}
+                      width={48}
+                      height={48}
                     />
                   </figure>
                 </a>
@@ -317,8 +325,8 @@ const Pokemon = ({ pokemon }) => {
                     <span className='name'>{state.allPokemon[nextPoke - 1].name}</span>
                     <ImageOpt
                       source={`/static/art/${getPokeImageNumber(nextPoke)}.png`}
-                      width={32}
-                      height={32}
+                      width={48}
+                      height={48}
                     />
                   </figure>
                 </a>
@@ -329,7 +337,7 @@ const Pokemon = ({ pokemon }) => {
         <PokeDetails>
           <ImageContainer>
             <PokeImage
-              source={`/static/art/${getPokeImageNumber(currentPoke, activePokemonForm)}.png`}
+              source={`/static/art/${getPokeImageNumber(currentPoke, hasAlternateForms, pokemonForm.current)}.png`}
               alt={name}
               width={250}
               height={250}

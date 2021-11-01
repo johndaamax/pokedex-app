@@ -10,9 +10,11 @@ export const getAllDexPokemon = gql`
   }
 `;
 
+//GraphQL query to fetch all pokemon with their alternate forms EXCLUDING totem alternates
+//because we have no image artwork for them
 export const getAllPokemonWithAlternates = gql`
   query getAllPokemonWithAlternates {
-    pokemon: pokemon_v2_pokemon {
+    pokemon: pokemon_v2_pokemon(where: {name: {_niregex: "totem"}}) {
       speciesID: pokemon_species_id
       name
       id
@@ -54,7 +56,7 @@ export const getPokeDataByDexNumber = gql`
           name
         }
       }
-      moves:pokemon_v2_pokemonmoves(where: {version_group_id: {_eq: 18}, _and: {level: {_gt: 0}}}) {
+      moves:pokemon_v2_pokemonmoves(where: {version_group_id: {_eq: 18}, _and: {level: {_gt: 0}}}, order_by: {level: asc}) {
         level
         move:pokemon_v2_move {
           name
@@ -79,7 +81,7 @@ export const getPokeDataByDexNumber = gql`
         flavorTexts:pokemon_v2_pokemonspeciesflavortexts(where: {language_id: {_eq: 9}}, limit: 1, order_by: {version_id: desc}) {
           text:flavor_text
         }
-        forms:pokemon_v2_pokemons {
+        forms:pokemon_v2_pokemons(where: {name: {_niregex: "totem"}}) {
           name
           isDefault:is_default
           id
