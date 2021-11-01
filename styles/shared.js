@@ -14,7 +14,8 @@ const WrapperDiv = styled.div`
     @media (min-width: 768px) {
         padding: 0.5rem 2rem;
     }
-`
+    ${'' /* ${props.customOptions ? css(`${customOptions}`) : ``} */}
+`;
 
 export const Wrapper = ({ color = 'default', children }) => {
     return <WrapperDiv color={color}>{children}</WrapperDiv>

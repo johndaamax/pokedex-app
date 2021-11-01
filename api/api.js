@@ -1,9 +1,23 @@
-const BASE_API = 'https://pokeapi.co/api/v2'
-import { getIdFromURL } from '../util/helpers'
+import { getIdFromURL } from '../util/helpers';
 
-export const fetchAllPokemon = async () => {
-    const pokemon = await (await fetch(`${BASE_API}/pokemon?limit=893`)).json();
+const BASE_API = 'https://pokeapi.co/api/v2';
+
+export const fetchAllPokemon = async (config = { limit: 898 }) => {
+    const pokemon = await (await fetch(`${BASE_API}/pokemon?limit=${config.limit}`)).json();
     return pokemon;
+}
+
+export const fetchResourceById = async (resourceName, id) => {
+    try {
+        const response = await fetch(`${BASE_API}/${resourceName}/${id}`);
+        if (response.ok) {
+            const data = await response.json();
+            return data;
+        }
+    } catch (e) {
+        return { error: e.message }
+    }
+
 }
 
 export const fetchPokeBaseData = async (id) => {
@@ -19,10 +33,10 @@ export const fetchPokeBaseData = async (id) => {
         url: variety.pokemon.url
     }
     ))
-    let abilities = data && data.abilities &&
+    let abilities = data?.abilities &&
         await Promise.all(data.abilities
             .map(async (ability) => await (await fetch(ability.ability.url)).json())
         );
     abilities = abilities.map((ability, idx) => ({ ...ability, is_hidden: data.abilities[idx].is_hidden }));
-    return { ...data, ...filtered, national_number: +national, varieties: alternates, abilities: abilities };
+    return { ...data, ...filtered, national_number: +national, varieties: alternates, abilities };
 }

@@ -3,9 +3,10 @@ import styled from 'styled-components';
 import Link from 'next/link';
 import { useRouter } from 'next/router'
 
-import Layout from '../components/Layout/Layout'
+import Layout from '../components/Layout'
 import { Wrapper } from '../styles/shared'
-import Image from '../util/Image/Image'
+import ImageOpt from '../util/ImageOpt'
+import errorImage from '../public/static/error.png'
 
 const ErrorContainer = styled.div`
     display: flex;
@@ -63,7 +64,7 @@ const ErrorContainer = styled.div`
         justify-content: center;
         margin-top: 2rem;
     }
-`
+`;
 
 const Error = () => {
     const router = useRouter()
@@ -75,7 +76,7 @@ const Error = () => {
                     <title>Error</title>
                 </Head>
                 <ErrorContainer>
-                    <Image source='/static/error.png' alt='404-image' />
+                    <ImageOpt source={errorImage} alt='404-image' />
                     <h1 className='jumbo'>404</h1>
                     <h2 className='jumbo-desc'>Pokemon not found</h2>
                     <p className='fluff-text'>It seems that the page you were looking for could not be found!</p>

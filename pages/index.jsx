@@ -1,17 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import styled from 'styled-components';
 import _ from 'lodash'
 
-import Layout from '../components/Layout/Layout';
+import Layout from '../components/Layout';
+import PokedexContainer from '../components/PokedexContainer';
+import CustomInput from '../components/CustomInput';
 import { Wrapper } from '../styles/shared'
-import PokedexContainer from '../components/PokedexContainer/PokedexContainer';
-import { usePokemonList, setAllPokemonList } from '../context/AppProvider';
-import Image from '../util/Image/Image';
-import CustomInput from '../components/CustomInput/CustomInput'
+import ImageOpt from '../util/ImageOpt';
 
-import { fetchAllPokemon } from '../api/api'
+import { usePokemonList, setAllPokemonList } from '../context/AppProvider';
+import { pokeApiGraphQLFetch } from '../api/graphql-beta'
+import { getAllDexPokemon } from '../graphql/queries'
 
 const Main = styled.section`
     width: 60%;
@@ -29,8 +30,7 @@ const Main = styled.section`
         width: 80%;
         min-width: 320px;
     } 
-`
-
+`;
 const Recents = styled.section`
     width: max-content;
     max-width: 65%;
@@ -66,10 +66,6 @@ const Recents = styled.section`
                 background: #232323;
             }
             
-            img {
-                height: 64px;
-                width: 64px;
-            }
             span {
                 text-transform: capitalize;
                 margin-top: -5px;
@@ -80,58 +76,53 @@ const Recents = styled.section`
             } 
         }
     }
-`
-
+    .name {
+        padding-top: 0.5rem;
+        font-size:0.8em;
+    }
+`;
 const InputContainer = styled.div`
     display: flex;
     justify-content: center;
     align-items: center;
-    flex-direction: column;
+    width: calc(max(20%, 300px));
+    margin: 0 auto;
+    ${'' /* flex-direction: column; */}
     padding: 1em 0;
-`
-
+`;
 const Input = styled(CustomInput)`
     margin: 0 auto;
-    padding: 0.2em 1em;
+    padding: 0.8em 1em;
     width: 200px;
-    height: 35px;
-    border: 1px solid #a0a0a0;
+    border: 1px solid transparent;
     border-radius: 7px;
     &:focus {
-        border: 2px solid #323232;
+        border: 1px solid #323232;
         outline: none;
         &::placeholder {
             color: transparent;
           }
     }
-`
+`;
 const Home = ({ pokemon }) => {
-    const [pkmList, setpkmList] = useState(pokemon.results);
-    const [searchValue, setSearchValue] = useState('');
+    const [pkmList, setpkmList] = useState(pokemon);
 
     const [state, dispatch] = usePokemonList();
     useEffect(() => {
         // if context is empty, populate the appropriate fields with data from SSR
-        if (pokemon.results.length > 0) {
-            setAllPokemonList(dispatch, pokemon.results)
+        if (pokemon.length > 0) {
+            setAllPokemonList(dispatch, pokemon)
         }
     }, [])
 
-    useEffect(() => {
-        //check if context is populated and load data from there
-        if (state.allPokemon.length > 0) {
-            setpkmList(state.allPokemon);
-        }
-    }, [])
-
-    const searchPoke = (value) => {
+    const searchPoke = useCallback((value) => {
         if (value) {
-            const newList = pokemon.results.filter(poke => poke.name.includes(value) || poke.url.split('/')[6].includes(value))
+            const newList = pokemon.filter(poke => poke.name.includes(value) || poke.speciesID.toString().includes(value))
             setpkmList(newList);
         } else {
-            setpkmList(pokemon.results);
+            setpkmList(pokemon);
         }
-    }
+    }, [pokemon])
 
     return (
         <Layout>
@@ -139,18 +130,20 @@ const Home = ({ pokemon }) => {
                 <Head>
                     <title>Pokedex</title>
                 </Head>
-                {state.recentList && state.recentList.length > 0 &&
+                {state.recentList.length > 0 &&
                     <Recents>
                         <h4>Recently searched</h4>
                         <div className='container'>
                             {state.recentList.map(pkmn => (
                                 <Link key={pkmn.id} href={`/pokemon/${pkmn.id}`}>
                                     <a className='item'>
-                                        <Image
-                                            src={pkmn.sprites.front_default}
+                                        <ImageOpt
+                                            src={pkmn.spriteFrontURL}
                                             fallbackSrc='/static/missing.png'
-                                            alt={`${pkmn.name} Sprite`} />
-                                        <span>{pkmn.name}</span>
+                                            alt={`${pkmn.name} Sprite`}
+                                            width={64}
+                                            height={64} />
+                                        <span className='name'>{pkmn.name}</span>
                                     </a>
                                 </Link>
                             ))}
@@ -158,21 +151,32 @@ const Home = ({ pokemon }) => {
                     </Recents>
                 }
                 <InputContainer>
-                    <span>Search</span>
-                    <Input placeholder='Search by name or ID' searchPoke={searchPoke} />
+                    <label htmlFor='search' >Search</label>
+                    <Input placeholder='Search by name or ID' searchPoke={searchPoke} id='search' />
                 </InputContainer>
                 <Main>
                     <h2>Pokedex</h2>
-                    {pokemon && <PokedexContainer list={pkmList} />}
+                    <PokedexContainer list={pkmList} />
                 </Main>
             </Wrapper>
         </Layout>
     )
 }
 
-Home.getInitialProps = async () => {
-    const pokemon = await fetchAllPokemon();
-    return { pokemon }
+export const getStaticProps = async () => {
+    const data = await pokeApiGraphQLFetch(getAllDexPokemon);
+    const { data: { pokemon } } = data;
+
+    if (!pokemon) {
+        return {
+            notFound: true,
+        }
+    }
+
+    return {
+        props: { pokemon },
+        revalidate: 60 * 60 * 24 //revalidate once per day for possible data changes on the API
+    }
 }
 
 export default Home;

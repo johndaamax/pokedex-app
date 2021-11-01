@@ -1,27 +1,28 @@
-import { useState, useEffect } from 'react'
-import Head from 'next/head'
-import Link from 'next/link'
-import { useRouter } from 'next/router'
-import styled from 'styled-components'
-import _ from 'lodash'
+import { useState, useEffect } from 'react';
+import Head from 'next/head';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+import styled from 'styled-components';
+import _ from 'lodash';
 
-import Layout from '../../components/Layout/Layout'
-import { Wrapper } from '../../styles/shared'
-import InfoBox from '../../components/InfoBox/InfoBox'
-import StatTable from '../../components/StatTable/StatTable'
-import Image from '../../util/Image/Image'
+import Layout from '../../components/Layout';
+import { Wrapper } from '../../styles/shared';
+import InfoBox from '../../components/InfoBox';
+import StatTable from '../../components/StatTable';
+import ImageOpt from '../../util/ImageOpt';
 import {
-    typeColors,
-    pokemonBackgroundColors,
-    wrapperBackgroundColors
-} from '../../styles/styles'
+  typeColors,
+  pokemonBackgroundColors,
+  wrapperBackgroundColors
+} from '../../styles/styles';
 import { usePokemonList, updateRecentList } from '../../context/AppProvider';
 
-import { fetchPokeBaseData } from '../../api/api'
-import { getIdFromURL, truncText, getGenerationVersionGroups } from '../../util/helpers'
-import Select from '../../util/Select/Select'
-import Tooltip from '../../util/Tooltip/Tooltip'
-import CustomTable from '../../components/CustomTable/CustomTable'
+import { pokeApiGraphQLFetch } from '../../api/graphql-beta';
+import { getAllPokemonWithAlternates, getPokeDataByDexNumber } from '../../graphql/queries'
+import { truncText } from '../../util/helpers';
+import Select from '../../util/Select';
+import Tooltip from '../../util/Tooltip';
+import CustomTable from '../../components/CustomTable';
 
 const PokeName = styled.div`
     display: flex;
@@ -42,7 +43,6 @@ const PokeName = styled.div`
     }
 
 `;
-
 const NavAdjacentSection = styled.section`
     width: 100%;
     display: flex;
@@ -104,7 +104,7 @@ const NavAdjacentSection = styled.section`
             border: 2px solid #dfdfdf;
         }
     }
-`
+`;
 const PokeDetails = styled.div`
     display: flex;
     width: 100%;
@@ -116,7 +116,7 @@ const PokeDetails = styled.div`
     @media (max-width: 768px) {
         min-width: 320px;
     }
-`
+`;
 const ImageContainer = styled.div`
     width: 255px;
     min-width: 240px;
@@ -126,13 +126,12 @@ const ImageContainer = styled.div`
         margin: 0 auto 1em;
         width: 25%;
     }
-`
-const PokeImage = styled(Image)`
-    max-height: 250px;
+`;
+const PokeImage = styled(ImageOpt)`
     border-radius: 7px;
     background: #fff;
     padding: 0.5em;
-`
+`;
 const FlavorText = styled.div`
     background-color: #fff;
     border-radius: 10px;
@@ -141,7 +140,7 @@ const FlavorText = styled.div`
     > p {
         margin: 0;
     }
-`
+`;
 const TypeDiv = styled.div`
     background: ${props => typeColors[props.type]};
     color: #FFF;
@@ -151,7 +150,7 @@ const TypeDiv = styled.div`
     font-weight: bold;
     padding: 2px 6px;
     margin: 0 0.2rem;
-`
+`;
 const Summary = styled.div`
     width: 55%;
     min-width: 375px;
@@ -184,7 +183,7 @@ const Summary = styled.div`
     @media (max-width: 768px) {
         min-width: 90%;  
     } 
-`
+`;
 const AbilityDiv = styled.div`
     font-size: 14px;
     margin: 0 1rem;
@@ -201,214 +200,232 @@ const AbilityDiv = styled.div`
     > small {
         display: block;
     }
-`
+`;
 
 const Pokemon = ({ pokemon }) => {
-    const router = useRouter();
-    const [form, setForm] = useState(1);
-    const [state, dispatch] = usePokemonList();
+  const router = useRouter();
+  //state to indicate the pokemon's active form (1 is the default, 2 or higher are alternate forms)
+  const [activePokemonForm, setActivePokemonForm] = useState(1);
+  const [state, dispatch] = usePokemonList();
+  //to console log the pokemon, go to network tab and preview the JSON response
 
-    const primaryBackground = pokemonBackgroundColors[pokemon.types[0].type.name];
-    const wrapperBackground = wrapperBackgroundColors[pokemon.types[0].type.name];
-    const secondaryBorder = (pokemon.types[1] && pokemonBackgroundColors[pokemon.types[1].type.name]) || '#777777';
-    //numbers for previous, current and next pokemon - note that these are off by 1 when looking in arrays since they start from 0
-    const
-        previousPoke = +pokemon.national_number - 1,
-        currentPoke = +pokemon.national_number,
-        nextPoke = +pokemon.national_number + 1;
+  const {
+    height,
+    weight,
+    baseExperience,
+    id,
+    speciesID,
+    name,
+    abilities,
+    stats,
+    types,
+    moves,
+    species,
+  } = pokemon;
 
-    const pokemonForms = pokemon.varieties.map(item =>
-        ({ value: `/pokemon/${getIdFromURL(item.url)}`, label: item.name, form: item.form }));
-    const { moves } = pokemon;
+  const {
+    baseHappiness,
+    captureRate,
+    hatchCounter,
+    growthRate,
+    dexColor,
+    flavorTexts,
+    forms
+  } = species;
 
-    useEffect(() => {
-        //if empty pokemon array, redirect to pokedex page
-        if (state.allPokemon.length === 0) {
-            router.push('/');
-        }
-    }, [])
+  const transformedFormList = forms.map(({ name, id }, idx) => ({ value: `/pokemon/${id}`, label: name, form: idx + 1 }))
 
-    useEffect(() => {
-        updateRecentList(dispatch, state, pokemon)
-        if (pokemonForms.length === 1 && form !== 1)
-            setForm(1);
-    }, [pokemon])
+  const primaryBackground = pokemonBackgroundColors[types[0].type.name];
+  const wrapperBackground = wrapperBackgroundColors[types[0].type.name];
+  const secondaryBorder = (types[1] && pokemonBackgroundColors[types[1].type.name]) ?? '#777777';
+  //numbers for previous, current and next pokemon - note that these are off by 1 when looking in arrays since they start from 0
+  const
+    previousPoke = speciesID - 1,
+    currentPoke = speciesID,
+    nextPoke = speciesID + 1;
 
-    const getPokeImageURLByNumber = (number, form = 1) => {
-        // form 1 is the default form, for every alternate form it increases by 1
-        const numberFormatted = number < 999 ? number.toLocaleString('en-US', { minimumIntegerDigits: 3 }) : number;
-        const isAlternateExtra = form !== 1 ? `_f${form}` : '';
-        return `https://assets.pokemon.com/assets/cms2/img/pokedex/full/${numberFormatted}${isAlternateExtra}.png`;
+  useEffect(() => {
+    const { id, name, spriteFrontURL } = pokemon;
+    updateRecentList(dispatch, state, { id, name, spriteFrontURL })
+    if (forms.length === 1 && form !== 1)
+      setActivePokemonForm(1);
+  }, [pokemon])
+
+  const getPokeImageNumber = (number, form = 1) => {
+    const formattedNum = number.toLocaleString('en-US', { minimumIntegerDigits: 3 });
+    const isAlternate = form !== 1 ? `_f${form}` : '';
+    return `${formattedNum}${isAlternate}`;
+  }
+
+  const getFlavorText = (flavorTexts) => {
+    return flavorTexts[0].text.replace('\f', ' ');
+  }
+
+  const getAbilityText = (ability) => {
+    const { effectTexts } = ability;
+    return effectTexts[0].effect || 'Ability description not available.';
+  }
+
+  const handleDropdownChange = (option) => {
+    if (activePokemonForm !== option.form) {
+      setActivePokemonForm(option.form);
+      router.push(option.value);
     }
+  }
 
-    const getFlavorText = (pokemon, language = 'en') => {
-        const { flavor_text_entries } = pokemon;
-        const versions = ['sword', 'shield', 'lets-go-eevee', 'lets-go-pikachu', 'ultra-sun', 'ultra-moon', 'sun', 'moon', 'black-2', 'white-2', 'omega-ruby', 'alpha-sapphire', 'x', 'y'];
-        for (let version of versions) {
-            const text = flavor_text_entries.find(entry => entry.language.name === language && entry.version.name === version)
-            if (text)
-                return text.flavor_text;
-        }
-    }
-
-    const getAbilityText = (ability, language = 'en') => {
-        const { effect_entries } = ability;
-        const text = effect_entries?.find(entry => entry.language.name === language)
-        return text?.effect || 'Ability description not available.';
-    }
-
-    const handleDropdownChange = (option) => {
-        if (form !== option.form) {
-            setForm(option.form);
-            router.push(option.value);
-        }
-    }
-
-    const filterMovesLearnedViaMethod = (moves, method = 'level-up') => {
-        const filteredMoves = filterMovesByLatestGeneration(moves);
-        const finalMoveset = filteredMoves.filter(move => move.details.move_learn_method.name === method)
-        return finalMoveset;
-    }
-
-    const filterMovesByLatestGeneration = (moves) => {
-        let latestGen = 8;
-        let result = [];
-        // iterate from latest gen up until first until a moveset is generated
-        while (result.length === 0 && latestGen > 0) {
-            let versionGroups = getGenerationVersionGroups(latestGen);
-            result = moves
-                .filter(move =>
-                    (move.version_group_details.find(item => versionGroups.includes(item.version_group.name)) ? true : false))
-                .reduce((updatedMoves, move) => {
-                    let updatedMove = {
-                        move: move.move,
-                        details: move.version_group_details.find(item => versionGroups.includes(item.version_group.name))
-                    }
-                    updatedMoves.push(updatedMove);
-                    return updatedMoves
-                }, [])
-            latestGen--;
-        }
-        return result;
-    }
-
-    return (
-        <Layout>
-            <Wrapper color={wrapperBackground}>
-                <Head>
-                    <title>Overview of {_.capitalize(pokemon.name)}</title>
-                </Head>
-                <PokeName>
-                    <span className='id'>#{pokemon.national_number}</span>
-                    <p>{_.startCase(pokemon.name)}</p>
-                    {pokemonForms.length > 1 &&
-                        <Select
-                            onChange={handleDropdownChange}
-                            defaultTile='Forms'
-                            list={pokemonForms}
-                            placeholder={'Select form...'}
-                        />
-                    }
-                </PokeName>
-                <NavAdjacentSection>
-                    <div className="prev">
-                        {state.allPokemon[previousPoke - 1] &&
-                            <Link href={`/pokemon/${previousPoke}`}>
-                                <a>
-                                    <figure>
-                                        <span className='number'>#{previousPoke}</span>
-                                        <span className='name'>{state.allPokemon[previousPoke - 1].name}</span>
-                                        <Image
-                                            source={getPokeImageURLByNumber(previousPoke)}
-                                            fallbackSrc={pokemon.sprites.front_default}
-                                        />
-                                    </figure>
-                                </a>
-                            </Link>
-                        }
+  return (
+    <Layout>
+      <Wrapper color={wrapperBackground}>
+        <Head>
+          <title>Overview of {_.capitalize(name)}</title>
+        </Head>
+        <PokeName>
+          <span className='id'>#{speciesID}</span>
+          <p>{_.startCase(name)}</p>
+          {forms.length > 1 &&
+            <Select
+              onChange={handleDropdownChange}
+              list={transformedFormList}
+              placeholder={'Select form...'}
+            />
+          }
+        </PokeName>
+        <NavAdjacentSection>
+          <div className="prev">
+            {state.allPokemon[previousPoke - 1] &&
+              <Link href={`/pokemon/${previousPoke}`}>
+                <a>
+                  <figure>
+                    <span className='number'>#{previousPoke}</span>
+                    <span className='name'>{state.allPokemon[previousPoke - 1].name}</span>
+                    <ImageOpt
+                      source={`/static/art/${getPokeImageNumber(previousPoke)}.png`}
+                      width={32}
+                      height={32}
+                    />
+                  </figure>
+                </a>
+              </Link>
+            }
+          </div>
+          <div className="next">
+            {state.allPokemon[nextPoke - 1] &&
+              <Link href={`/pokemon/${nextPoke}`}>
+                <a>
+                  <figure>
+                    <span className='number'>#{nextPoke}</span>
+                    <span className='name'>{state.allPokemon[nextPoke - 1].name}</span>
+                    <ImageOpt
+                      source={`/static/art/${getPokeImageNumber(nextPoke)}.png`}
+                      width={32}
+                      height={32}
+                    />
+                  </figure>
+                </a>
+              </Link>
+            }
+          </div>
+        </NavAdjacentSection>
+        <PokeDetails>
+          <ImageContainer>
+            <PokeImage
+              source={`/static/art/${getPokeImageNumber(currentPoke, activePokemonForm)}.png`}
+              alt={name}
+              width={250}
+              height={250}
+            />
+            <FlavorText>
+              <strong>Description:</strong>
+              <p>
+                {getFlavorText(flavorTexts)}
+              </p>
+            </FlavorText>
+          </ImageContainer>
+          <Summary color={primaryBackground} border={secondaryBorder}>
+            <div className='attributes'>
+              <InfoBox type="Type">
+                {types.map(t =>
+                  <TypeDiv type={t.type.name} key={t.type.name}>{t.type.name}</TypeDiv>)
+                }
+              </InfoBox>
+              <InfoBox type='Abilities'>
+                {abilities.length > 0 ? abilities.map(a =>
+                  <AbilityDiv
+                    key={a.id}>
+                    <div className='ability-text'>
+                      <p>{a.ability.name}</p>
+                      {a.isHidden && <small style={{ marginTop: '0.5rem' }}>Hidden Ability</small>}
                     </div>
-                    <div className="next">
-                        {state.allPokemon[nextPoke - 1] &&
-                            <Link href={`/pokemon/${nextPoke}`}>
-                                <a>
-                                    <figure>
-                                        <span className='number'>#{nextPoke}</span>
-                                        <span className='name'>{state.allPokemon[nextPoke - 1].name}</span>
-                                        <Image
-                                            source={getPokeImageURLByNumber(nextPoke)}
-                                            fallbackSrc={pokemon.sprites.front_default}
-                                        />
-                                    </figure>
-                                </a>
-                            </Link>
-                        }
-                    </div>
-                </NavAdjacentSection>
-                <PokeDetails>
-                    <ImageContainer>
-                        <PokeImage
-                            source={getPokeImageURLByNumber(currentPoke, form)}
-                            fallbackSrc={pokemon.sprites.front_default}
-                            alt={pokemon.name} />
-                        <FlavorText>
-                            <strong>Description:</strong>
-                            <p>
-                                {getFlavorText(pokemon)}
-                            </p>
-                        </FlavorText>
-                    </ImageContainer>
-                    <Summary color={primaryBackground} border={secondaryBorder}>
-                        <div className='attributes'>
-                            <InfoBox type="Type">{pokemon.types.map(t => <TypeDiv type={t.type.name} key={t.slot}>{t.type.name}</TypeDiv>)}</InfoBox>
-                            <InfoBox type='Abilities'>
-                                {pokemon.abilities.length > 0 ? pokemon.abilities.map(a =>
-                                    <AbilityDiv
-                                        key={a.id}>
-                                        <div className='ability-text'>
-                                            <p>{a.name}</p>
-                                            {a.is_hidden && <small style={{ marginTop: '0.5rem' }}>Hidden Ability</small>}
-                                        </div>
-                                        <Tooltip text={truncText(getAbilityText(a))}>
-                                            <img src='/static/help-18.png' alt='ability-text-tooltip' />
-                                        </Tooltip>
-                                    </AbilityDiv>) :
-                                    <AbilityDiv>
-                                        Unknown
-                                    </AbilityDiv>
-                                }
-                            </InfoBox>
-                            <div className='minor'>
-                                <InfoBox type='Height'>{pokemon.height ? `${pokemon.height / 10.0}m` : 'Unknown'}</InfoBox>
-                                <InfoBox type='Weight'>{pokemon.weight ? `${pokemon.weight / 10.0}kg` : 'Unknown'}</InfoBox>
-                            </div>
-                            <div className='minor'>
-                                <InfoBox type='Base Experience'>{pokemon?.base_experience || 'Unknown'}</InfoBox>
-                                <InfoBox type='Leveling Rate'>{_.startCase(pokemon.growth_rate?.name || 'Unknown')}</InfoBox>
-                            </div>
-                            <div className='minor'>
-                                <InfoBox type='Pokedex Color' >{_.startCase(pokemon.color?.name || 'Unknown')}</InfoBox>
-                                <InfoBox type='Base Friendship' >{pokemon?.base_happiness || 'Unknown'}</InfoBox>
-                            </div>
-                        </div>
-                        {pokemon.stats && pokemon.stats.length > 0 && <StatTable pokemon={pokemon} />}
-                        <CustomTable
-                            columns={[
-                                { Header: 'Move Name', accessor: 'move' },
-                                { Header: 'Level', accessor: 'level' }
-                            ]}
-                            data={filterMovesLearnedViaMethod(moves, 'level-up').map(el => ({ move: _.startCase(el.move.name), level: el.details.level_learned_at }))} />
-                    </Summary>
-                </PokeDetails>
-            </Wrapper>
-        </Layout>
-    )
+                    <Tooltip text={truncText(getAbilityText(a.ability))}>
+                      <ImageOpt src='/static/help-18.png' alt='ability-text-tooltip' width={18} height={18} />
+                    </Tooltip>
+                  </AbilityDiv>) :
+                  <AbilityDiv>
+                    Unknown
+                  </AbilityDiv>
+                }
+              </InfoBox>
+              <div className='minor'>
+                <InfoBox type='Height'>{height ? `${height / 10.0}m` : 'Unknown'}</InfoBox>
+                <InfoBox type='Weight'>{weight ? `${weight / 10.0}kg` : 'Unknown'}</InfoBox>
+              </div>
+              <div className='minor'>
+                <InfoBox type='Base Experience'>{baseExperience ?? 'Unknown'}</InfoBox>
+                <InfoBox type='Leveling Rate'>{_.startCase(growthRate.name ?? 'Unknown')}</InfoBox>
+              </div>
+              <div className='minor'>
+                <InfoBox type='Pokedex Color' >{_.startCase(dexColor.name ?? 'Unknown')}</InfoBox>
+                <InfoBox type='Base Friendship' >{baseHappiness ?? 'Unknown'}</InfoBox>
+              </div>
+            </div>
+            {/* {pokemon.pokemon_v2_pokemonstats && pokemon.pokemon_v2_pokemonstats.length > 0 && <StatTable pokemon={pokemon} />}
+            <CustomTable
+              columns={[
+                { Header: 'Move Name', accessor: 'move' },
+                { Header: 'Level', accessor: 'level' }
+              ]}
+              data={filterMovesLearnedViaMethod(moves, 'level-up').map(el => ({ move: _.startCase(el.move.name), level: el.details.level_learned_at }))} /> */}
+          </Summary>
+        </PokeDetails>
+      </Wrapper>
+    </Layout>
+  )
 }
 
-Pokemon.getInitialProps = async (ctx) => {
-    const { query } = ctx;
-    const id = query.id;
-    const pokemon = await fetchPokeBaseData(id);
-    return { pokemon };
+//migrate to GraphQL endpoint for vastly reduced download size
+export const getStaticPaths = async () => {
+  const data = await pokeApiGraphQLFetch(getAllPokemonWithAlternates);
+  const { data: { pokemon } } = data;
+  const paths = pokemon.map((pokemon) => ({
+    params: { id: pokemon.id.toString() },
+  }))
+
+  return {
+    paths,
+    fallback: false
+  }
+}
+
+export const getStaticProps = async ({ params }) => {
+  const { id } = params;
+  const data = await pokeApiGraphQLFetch(getPokeDataByDexNumber, { dex_number: id });
+  const { data: { pokemon } } = data;
+
+  if (!pokemon) {
+    return {
+      notFound: true,
+    }
+  }
+
+  const getPokeSpriteURLByNumber = (number) => {
+    // temporary method because the sprite data is not included in the PokeAPI GraphQL backend
+    return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${number}.png`;
+  }
+  const transformed = { ...pokemon, spriteFrontURL: getPokeSpriteURLByNumber(pokemon.id) };
+
+  return {
+    props: { pokemon: transformed }
+  }
 }
 
 export default Pokemon
