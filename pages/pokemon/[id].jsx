@@ -22,7 +22,7 @@ import { getAllPokemonWithAlternates, getPokeDataByDexNumber } from '../../graph
 import { truncText } from '../../util/helpers';
 import Select from '../../util/Select';
 import Tooltip from '../../util/Tooltip';
-import CustomTable from '../../components/CustomTable';
+import MoveRow from '../../components/MoveRow';
 
 const PokeName = styled.div`
     display: flex;
@@ -386,15 +386,27 @@ const Pokemon = ({ pokemon }) => {
                 <InfoBox type='Base Friendship' >{baseHappiness ?? 'Unknown'}</InfoBox>
               </div>
             </div>
-            {/* {pokemon.pokemon_v2_pokemonstats && pokemon.pokemon_v2_pokemonstats.length > 0 && <StatTable pokemon={pokemon} />}
-            <CustomTable
-              columns={[
-                { Header: 'Move Name', accessor: 'move' },
-                { Header: 'Level', accessor: 'level' }
-              ]}
-              data={filterMovesLearnedViaMethod(moves, 'level-up').map(el => ({ move: _.startCase(el.move.name), level: el.details.level_learned_at }))} /> */}
+            {/* {pokemon.pokemon_v2_pokemonstats && pokemon.pokemon_v2_pokemonstats.length > 0 && <StatTable pokemon={pokemon} />} */}
           </Summary>
         </PokeDetails>
+        <div>
+          <h2>Moves</h2>
+          {
+            moves.map((move, idx) => (
+              <MoveRow
+                key={`${move.move.name}${idx}`}
+                level={move.level}
+                name={_.startCase(move.move.name)}
+                type={_.startCase(move.move.type.name)}
+                power={move.move.power ?? '—'}
+                accuracy={move.move.accuracy ?? '—'}
+                pp={move.move.pp}
+                effectText={move.move.moveEffect.moveEffectTexts[0].shortEffect}
+                effectChance={move.move.effectChance}
+                damageClass={_.startCase(move.move.damageClass.name)}
+              />))
+          }
+        </div>
       </Wrapper>
     </Layout>
   )

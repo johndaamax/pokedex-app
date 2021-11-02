@@ -3,6 +3,7 @@ import Link from 'next/link'
 
 const Container = styled.div`
     max-height: 70vh;
+    min-height: 495px;
     padding: 0.2rem 1rem;
     overflow: auto;
     border: 1px solid #999999;

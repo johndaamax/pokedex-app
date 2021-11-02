@@ -16,6 +16,8 @@ import { getAllDexPokemon } from '../graphql/queries'
 
 const Main = styled.section`
     width: 60%;
+    max-width: 450px;
+    min-height: 495px;
     margin: 0 auto;
     padding: 0.5rem;
     border-radius: 10px;
@@ -156,7 +158,8 @@ const Home = ({ pokemon }) => {
                 </InputContainer>
                 <Main>
                     <h2>Pokedex</h2>
-                    <PokedexContainer list={pkmList} />
+                    {pkmList.length ? <PokedexContainer list={pkmList} /> :
+                        <p>No pokemon found!</p>}
                 </Main>
             </Wrapper>
         </Layout>

@@ -63,6 +63,18 @@ export const getPokeDataByDexNumber = gql`
           accuracy
           pp
           power
+          type:pokemon_v2_type {
+            name
+          }
+          effectChance:move_effect_chance
+          moveEffect:pokemon_v2_moveeffect {
+            moveEffectTexts:pokemon_v2_moveeffecteffecttexts {
+              shortEffect:short_effect
+            }
+          }
+          damageClass:pokemon_v2_movedamageclass {
+            name
+          }
         }
         learnMethod:pokemon_v2_movelearnmethod {
           name
