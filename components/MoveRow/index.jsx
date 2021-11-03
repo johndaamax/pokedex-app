@@ -54,6 +54,10 @@ const Wrapper = styled.div`
     @media (max-width: 768px) {
       width: 50%;
     }
+    @media (max-width: 480px) {
+      width: 100%;
+      justify-content: center;
+    }
   }
 
   .move-stats {
@@ -73,6 +77,12 @@ const Wrapper = styled.div`
     }
     @media (max-width: 768px) {
       width: 100%;
+    }
+    @media (max-width: 480px) {
+      flex-direction: column;
+      span {
+        padding: 0.2em 0;
+      }
     }
     
   }
@@ -135,7 +145,7 @@ const MoveRow = ({ level, name, type, power, accuracy, pp, effectText, effectCha
       </div>
       <div className='move-data'>
         <div className='move-name' title={name}>
-          {name}
+          <div>{name}</div>
         </div>
         <div className='move-stats'>
           <span className='move-stat-type'>

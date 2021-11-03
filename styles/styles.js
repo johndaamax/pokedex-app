@@ -23,8 +23,8 @@ export const statColors = {
     hp: "#FF0000",
     attack: "#F08030",
     defense: "#F8D030",
-    specialAttack: "#6890F0",
-    specialDefense: "#78C850",
+    'special-attack': "#6890F0",
+    'special-defense': "#78C850",
     speed: "#F85888"
 }
 
@@ -32,8 +32,8 @@ export const statBackgroundColors = {
     hp: "#FF5959",
     attack: "#F5AC78",
     defense: "#FAE078",
-    specialAttack: "#9DB7F5",
-    specialDefense: "#A7DB8D",
+    'special-attack': "#9DB7F5",
+    'special-defense': "#A7DB8D",
     speed: "#FA92B2"
 }
 

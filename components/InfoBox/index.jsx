@@ -13,6 +13,7 @@ const Div = styled.div`
     display: flex;
     padding: 0.3rem;
     justify-content: center;
+    flex-wrap: wrap;
 `
 
 const InfoBox = ({ type, children }) => {

@@ -4,6 +4,8 @@ import styled from 'styled-components'
 const Wrapper = styled.div`
     position: relative;
     display: inline-block;
+    width: 18px;
+    height: 18px;
 
     .tooltiptext {
         visibility: hidden;

@@ -6,23 +6,24 @@ import styled from 'styled-components';
 import _ from 'lodash';
 
 import Layout from '../../components/Layout';
-import { Wrapper } from '../../styles/shared';
 import InfoBox from '../../components/InfoBox';
 import StatTable from '../../components/StatTable';
+import MoveRow from '../../components/MoveRow';
+import { usePokemonList, updateRecentList } from '../../context/AppProvider';
+import { pokeApiGraphQLFetch } from '../../api/graphql-beta';
+import { getAllPokemonWithAlternates, getPokeDataByDexNumber } from '../../graphql/queries';
+
 import ImageOpt from '../../util/ImageOpt';
+import Select from '../../util/Select';
+import Tooltip from '../../util/Tooltip';
+import { truncText } from '../../util/helpers';
+
+import { Wrapper } from '../../styles/shared';
 import {
   typeColors,
   pokemonBackgroundColors,
   wrapperBackgroundColors
 } from '../../styles/styles';
-import { usePokemonList, updateRecentList } from '../../context/AppProvider';
-
-import { pokeApiGraphQLFetch } from '../../api/graphql-beta';
-import { getAllPokemonWithAlternates, getPokeDataByDexNumber } from '../../graphql/queries'
-import { truncText } from '../../util/helpers';
-import Select from '../../util/Select';
-import Tooltip from '../../util/Tooltip';
-import MoveRow from '../../components/MoveRow';
 
 const PokeName = styled.div`
     display: flex;
@@ -155,15 +156,24 @@ const Summary = styled.div`
     width: 55%;
     min-width: 375px;
     margin: 0 auto;
-    .attributes {
-        transition: transform 0.3s ease;
-        &:hover {
-            transform: scale(1.1);
-        }
+
+    > div {
+      margin-bottom: 1rem;
+    }
+
+    .content-section {
         background-color: ${props => props.color};
-        border: 3px solid ${props => props.border};
+        border: 1px solid ${props => props.border};
         padding: 0.6em;
-        border-radius: 10px;
+        border-radius: 4px;
+
+        h2 {
+          margin: 0.3em 0;
+        }
+    }
+
+    .resp-scroll {
+      overflow-x: auto;
     }
 
     .minor{
@@ -196,9 +206,9 @@ const AbilityDiv = styled.div`
         p {
             margin: 0;
         }
-    }
-    > small {
-        display: block;
+        > small {
+          font-size: 0.5em;
+        }
     }
 `;
 
@@ -350,7 +360,8 @@ const Pokemon = ({ pokemon }) => {
             </FlavorText>
           </ImageContainer>
           <Summary color={primaryBackground} border={secondaryBorder}>
-            <div className='attributes'>
+            <div className='content-section'>
+              <h2>Pokémon Summary</h2>
               <InfoBox type="Type">
                 {types.map(t =>
                   <TypeDiv type={t.type.name} key={t.type.name}>{t.type.name}</TypeDiv>)
@@ -374,8 +385,8 @@ const Pokemon = ({ pokemon }) => {
                 }
               </InfoBox>
               <div className='minor'>
-                <InfoBox type='Height'>{height ? `${height / 10.0}m` : 'Unknown'}</InfoBox>
-                <InfoBox type='Weight'>{weight ? `${weight / 10.0}kg` : 'Unknown'}</InfoBox>
+                <InfoBox type='Height'>{height ? `${height / 10.0} metres` : 'Unknown'}</InfoBox>
+                <InfoBox type='Weight'>{weight ? `${weight / 10.0} kg` : 'Unknown'}</InfoBox>
               </div>
               <div className='minor'>
                 <InfoBox type='Base Experience'>{baseExperience ?? 'Unknown'}</InfoBox>
@@ -386,11 +397,18 @@ const Pokemon = ({ pokemon }) => {
                 <InfoBox type='Base Friendship' >{baseHappiness ?? 'Unknown'}</InfoBox>
               </div>
             </div>
-            {/* {pokemon.pokemon_v2_pokemonstats && pokemon.pokemon_v2_pokemonstats.length > 0 && <StatTable pokemon={pokemon} />} */}
+            <div className='content-section'>
+              <h2>Base Stats</h2>
+              <div className='resp-scroll'>
+                <StatTable stats={stats} />
+              </div>
+              <small>The ranges shown are for level 50 and 100 Pokémon. Maximum values are based on a beneficial nature, 252 EVs, 31 IVs; minimum values are based on a hindering nature, 0 EVs, 0 IVs.</small>
+            </div>
           </Summary>
         </PokeDetails>
         <div>
           <h2>Moves</h2>
+          <small>(*) All moves displayed are of Generation VII Ultra Sun/Ultra Moon Pokemon games.</small>
           {
             moves.map((move, idx) => (
               <MoveRow
