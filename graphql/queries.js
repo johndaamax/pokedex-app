@@ -47,6 +47,7 @@ export const getPokeDataByDexNumber = gql`
       }
       stats:pokemon_v2_pokemonstats {
         value:base_stat
+        effort
         stat:pokemon_v2_stat {
           name
         }

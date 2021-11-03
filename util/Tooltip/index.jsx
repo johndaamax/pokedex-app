@@ -6,6 +6,7 @@ const Wrapper = styled.div`
     display: inline-block;
     width: 18px;
     height: 18px;
+    margin-left: 0.2em;
 
     .tooltiptext {
         visibility: hidden;

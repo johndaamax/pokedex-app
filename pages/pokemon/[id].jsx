@@ -22,7 +22,8 @@ import { Wrapper } from '../../styles/shared';
 import {
   typeColors,
   pokemonBackgroundColors,
-  wrapperBackgroundColors
+  wrapperBackgroundColors,
+  statColors
 } from '../../styles/styles';
 
 const PokeName = styled.div`
@@ -113,6 +114,20 @@ const PokeDetails = styled.div`
     height: 80%;
     border-radius: 4px;
     flex-flow: row wrap;
+
+    .summary-stats {
+      > div {
+        margin: 0.25em 0;
+      }
+    }
+
+    .ev-container {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 0.25em;
+      margin-top: 0.5em;
+    }
 
     @media (max-width: 768px) {
         min-width: 320px;
@@ -211,6 +226,15 @@ const AbilityDiv = styled.div`
         }
     }
 `;
+const StatDiv = styled.div`
+  display: flex;
+  flex-direction: column;
+  padding: 0.5em 0;
+  font-size: 0.75em;
+  border-radius: 8px;
+  background: ${props => statColors[props.stat]};
+  font-weight: 700;
+`;
 
 const Pokemon = ({ pokemon }) => {
   const router = useRouter();
@@ -224,7 +248,6 @@ const Pokemon = ({ pokemon }) => {
     height,
     weight,
     baseExperience,
-    id,
     speciesID,
     name,
     abilities,
@@ -289,6 +312,21 @@ const Pokemon = ({ pokemon }) => {
       // setActivePokemonForm(option.form);
       router.push(option.value);
     }
+  }
+
+  const getCatchPercentage = (catchRate, ballBonus = 1, statusBonus = 1) => {
+    //the formula to calculate this percentage is based on Generation III/IV games and is:
+    //pct = ((((3 * HPMax - 2 * HPCurr) * catchRate * ballBonus) / 3 * HPMax) * statusBonus) / 255
+    //which, at full HP values simplifies to 
+    //pct = (1/3 * (catchRate * ballBonus * statusBonus)) / 255
+    //then, we multiply by 100 to get the percentage and format to 2 decimal points
+    return ((((catchRate * ballBonus * statusBonus) / 3) / 255) * 100).toFixed(2)
+  }
+
+  const getHatchStepsRange = (cycles) => {
+    //the amount of steps a pokemon requires to hatch from an egg
+    //an egg cycle is 257 steps in Generation VIII
+    return `${257 * (cycles - 1) + 1}-${257 * cycles}`
   }
 
   return (
@@ -360,7 +398,7 @@ const Pokemon = ({ pokemon }) => {
             </FlavorText>
           </ImageContainer>
           <Summary color={primaryBackground} border={secondaryBorder}>
-            <div className='content-section'>
+            <div className='content-section summary-stats'>
               <h2>Pokémon Summary</h2>
               <InfoBox type="Type">
                 {types.map(t =>
@@ -389,13 +427,51 @@ const Pokemon = ({ pokemon }) => {
                 <InfoBox type='Weight'>{weight ? `${weight / 10.0} kg` : 'Unknown'}</InfoBox>
               </div>
               <div className='minor'>
-                <InfoBox type='Base Experience'>{baseExperience ?? 'Unknown'}</InfoBox>
+                <InfoBox type='Base Experience'>
+                  {baseExperience ?? 'Unknown'}
+                  <Tooltip text={`The amount of base experience points this pokemon yields when it is defeated in battle.`}>
+                    <ImageOpt src='/static/help-18.png' alt='ability-text-tooltip' width={18} height={18} />
+                  </Tooltip>
+                </InfoBox>
                 <InfoBox type='Leveling Rate'>{_.startCase(growthRate.name ?? 'Unknown')}</InfoBox>
               </div>
               <div className='minor'>
-                <InfoBox type='Pokedex Color' >{_.startCase(dexColor.name ?? 'Unknown')}</InfoBox>
-                <InfoBox type='Base Friendship' >{baseHappiness ?? 'Unknown'}</InfoBox>
+                <InfoBox type='Pokédex color' >{_.startCase(dexColor.name ?? 'Unknown')}</InfoBox>
+                <InfoBox type='Base friendship' >{baseHappiness ?? 'Unknown'}</InfoBox>
               </div>
+              <div className='minor'>
+                <InfoBox type='Catch rate'>
+                  {captureRate ?? 'Unknown'}
+                  {captureRate &&
+                    <Tooltip text={`${getCatchPercentage(captureRate)}% with PokéBall, full HP`}>
+                      <ImageOpt src='/static/help-18.png' alt='ability-text-tooltip' width={18} height={18} />
+                    </Tooltip>
+                  }
+                </InfoBox>
+                <InfoBox type='Egg cycles' >
+                  {hatchCounter ?? 'Unknown'}
+                  {hatchCounter &&
+                    <Tooltip text={`This pokemon requires between ${getHatchStepsRange(hatchCounter)} steps to hatch from an egg.`}>
+                      <ImageOpt src='/static/help-18.png' alt='ability-text-tooltip' width={18} height={18} />
+                    </Tooltip>
+                  }
+                </InfoBox>
+              </div>
+              <InfoBox type='EV Yield' >
+                <div>Total: <strong>{stats.reduce((acc, cv) => acc + cv.effort, 0)}</strong></div>
+                <div className='ev-container'>
+                  {stats.map(({ stat, effort }, idx) => {
+                    const statLabels = ['HP', 'Attack', 'Defense', 'Sp. Atk', 'Sp. Def', 'Speed'];
+
+                    return (
+                      <StatDiv key={stat.name} stat={stat.name}>
+                        <span>{effort}</span>
+                        <span title={`${statLabels[idx]}`}>{`${statLabels[idx]}`}</span>
+                      </StatDiv>
+                    )
+                  })}
+                </div>
+              </InfoBox>
             </div>
             <div className='content-section'>
               <h2>Base Stats</h2>
