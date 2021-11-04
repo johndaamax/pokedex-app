@@ -1,5 +1,7 @@
-import React from 'react'
-import styled from 'styled-components'
+import React from 'react';
+import styled from 'styled-components';
+
+import ImageOpt from '../ImageOpt';
 
 const Wrapper = styled.div`
     position: relative;
@@ -13,9 +15,9 @@ const Wrapper = styled.div`
         width: 165px;
         max-height: 250px;
         text-overflow: ellipsis;
+        overflow-y: auto;
         background-color: black;
         color: #fff;
-        text-align: center;
         text-transform: none;
         border-radius: 6px;
         padding: 0.4em;
@@ -24,22 +26,30 @@ const Wrapper = styled.div`
         top: 100%;
         left: 50%;
         margin-left: -80px;
-        font-size: 13px;
+        font-size: 0.75rem;
         line-height: 16px;
         opacity: 0;
         transition: opacity 1s;
+        ::-webkit-scrollbar {
+            width: 0.5em;
+            border-top-right-radius: 6px;
+            border-bottom-right-radius: 6px;
+        }
+        ::-webkit-scrollbar-thumb {
+            border-radius: 6px;
+        }
     }
 
     &:hover .tooltiptext {
         visibility: visible;
         opacity: 1;
     }
-`
+`;
 
-const Tooltip = ({ children, text }) => {
+const Tooltip = ({ text }) => {
     return (
         <Wrapper className="tooltip">
-            {children}
+            <ImageOpt src='/static/help-18.png' alt='question mark tooltip icon' width={18} height={18} />
             <span className="tooltiptext">{text}</span>
         </Wrapper>
     )

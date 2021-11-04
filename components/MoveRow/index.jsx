@@ -33,6 +33,7 @@ const Wrapper = styled.div`
 
   .move-label-value {
     font-size: 1.5em;
+    font-weight: 700;
   }
 
   .move-data {

@@ -16,7 +16,7 @@ import { getAllPokemonWithAlternates, getPokeDataByDexNumber } from '../../graph
 import ImageOpt from '../../util/ImageOpt';
 import Select from '../../util/Select';
 import Tooltip from '../../util/Tooltip';
-import { truncText } from '../../util/helpers';
+import { levelingRateData } from '../../util/helperData';
 
 import { Wrapper } from '../../styles/shared';
 import {
@@ -222,7 +222,9 @@ const AbilityDiv = styled.div`
             margin: 0;
         }
         > small {
+          display: inline-block;
           font-size: 0.5em;
+          margin-top: 0.5em;
         }
     }
 `;
@@ -411,11 +413,9 @@ const Pokemon = ({ pokemon }) => {
                     key={a.id}>
                     <div className='ability-text'>
                       <p>{a.ability.name}</p>
-                      {a.isHidden && <small style={{ marginTop: '0.5rem' }}>Hidden Ability</small>}
+                      {a.isHidden && <small>Hidden Ability</small>}
                     </div>
-                    <Tooltip text={truncText(getAbilityText(a.ability))}>
-                      <ImageOpt src='/static/help-18.png' alt='ability-text-tooltip' width={18} height={18} />
-                    </Tooltip>
+                    <Tooltip text={getAbilityText(a.ability)} />
                   </AbilityDiv>) :
                   <AbilityDiv>
                     Unknown
@@ -423,17 +423,19 @@ const Pokemon = ({ pokemon }) => {
                 }
               </InfoBox>
               <div className='minor'>
-                <InfoBox type='Height'>{height ? `${height / 10.0} metres` : 'Unknown'}</InfoBox>
-                <InfoBox type='Weight'>{weight ? `${weight / 10.0} kg` : 'Unknown'}</InfoBox>
+                <InfoBox type='Height'>{height ? `${height / 10.0}m` : 'Unknown'}</InfoBox>
+                <InfoBox type='Weight'>{weight ? `${weight / 10.0}kg` : 'Unknown'}</InfoBox>
               </div>
               <div className='minor'>
                 <InfoBox type='Base Experience'>
                   {baseExperience ?? 'Unknown'}
-                  <Tooltip text={`The amount of base experience points this pokemon yields when it is defeated in battle.`}>
-                    <ImageOpt src='/static/help-18.png' alt='ability-text-tooltip' width={18} height={18} />
-                  </Tooltip>
+                  <Tooltip text={`The amount of base experience points this pokemon yields when it is defeated in battle.`} />
                 </InfoBox>
-                <InfoBox type='Leveling Rate'>{_.startCase(growthRate.name ?? 'Unknown')}</InfoBox>
+                <InfoBox type='Leveling Rate'>{levelingRateData[growthRate.name].name ?? 'Unknown'}
+                  {growthRate.name &&
+                    <Tooltip text={levelingRateData[growthRate.name].text} />
+                  }
+                </InfoBox>
               </div>
               <div className='minor'>
                 <InfoBox type='Pokédex color' >{_.startCase(dexColor.name ?? 'Unknown')}</InfoBox>
@@ -443,17 +445,13 @@ const Pokemon = ({ pokemon }) => {
                 <InfoBox type='Catch rate'>
                   {captureRate ?? 'Unknown'}
                   {captureRate &&
-                    <Tooltip text={`${getCatchPercentage(captureRate)}% with PokéBall, full HP`}>
-                      <ImageOpt src='/static/help-18.png' alt='ability-text-tooltip' width={18} height={18} />
-                    </Tooltip>
+                    <Tooltip text={`${getCatchPercentage(captureRate)}% with PokéBall, full HP`} />
                   }
                 </InfoBox>
                 <InfoBox type='Egg cycles' >
                   {hatchCounter ?? 'Unknown'}
                   {hatchCounter &&
-                    <Tooltip text={`This pokemon requires between ${getHatchStepsRange(hatchCounter)} steps to hatch from an egg.`}>
-                      <ImageOpt src='/static/help-18.png' alt='ability-text-tooltip' width={18} height={18} />
-                    </Tooltip>
+                    <Tooltip text={`This Pokémon requires between ${getHatchStepsRange(hatchCounter)} steps to hatch from an egg.`} />
                   }
                 </InfoBox>
               </div>
