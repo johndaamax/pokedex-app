@@ -12,7 +12,7 @@ const Wrapper = styled.div`
 
     .tooltiptext {
         visibility: hidden;
-        width: 165px;
+        width: 145px;
         max-height: 250px;
         text-overflow: ellipsis;
         overflow-y: auto;
@@ -25,7 +25,7 @@ const Wrapper = styled.div`
         z-index: 1;
         top: 100%;
         left: 50%;
-        margin-left: -80px;
+        margin-left: -100px;
         font-size: 0.75rem;
         line-height: 16px;
         opacity: 0;

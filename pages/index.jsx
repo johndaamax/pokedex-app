@@ -7,7 +7,7 @@ import _ from 'lodash'
 import Layout from '../components/Layout';
 import PokedexContainer from '../components/PokedexContainer';
 import CustomInput from '../components/CustomInput';
-import { Wrapper } from '../styles/shared'
+import { WrapperDiv } from '../styles/shared'
 import ImageOpt from '../util/ImageOpt';
 
 import { usePokemonList, setAllPokemonList } from '../context/AppProvider';
@@ -128,7 +128,7 @@ const Home = ({ pokemon }) => {
 
     return (
         <Layout>
-            <Wrapper>
+            <WrapperDiv>
                 <Head>
                     <title>Pokedex</title>
                 </Head>
@@ -161,7 +161,7 @@ const Home = ({ pokemon }) => {
                     {pkmList.length ? <PokedexContainer list={pkmList} /> :
                         <p>No pokemon found!</p>}
                 </Main>
-            </Wrapper>
+            </WrapperDiv>
         </Layout>
     )
 }

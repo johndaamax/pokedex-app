@@ -11,8 +11,9 @@ const Wrapper = styled.div`
   width: 100%;
   background: ${props => wrapperBackgroundColors[props.type.toLowerCase()]};
   padding: 0.5em 1.5em;
-  margin: 0.075em 0;
+  margin: 0.1em 0;
   border-radius: 4px;
+  box-shadow: 0px 2px 14px -2px rgba(0,0,0,0.57);
   @media (max-width: 768px) {
     padding: 0.25em 0.5em;
   }

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router'
 
 import Layout from '../components/Layout'
-import { Wrapper } from '../styles/shared'
+import { WrapperDiv } from '../styles/shared'
 import ImageOpt from '../util/ImageOpt'
 import errorImage from '../public/static/error.png'
 
@@ -71,7 +71,7 @@ const Error = () => {
 
     return (
         <Layout>
-            <Wrapper>
+            <WrapperDiv>
                 <Head>
                     <title>Error</title>
                 </Head>
@@ -85,7 +85,7 @@ const Error = () => {
                         <span onClick={() => router.back()}>Go Back</span>
                     </div>
                 </ErrorContainer>
-            </Wrapper>
+            </WrapperDiv>
         </Layout>
     )
 }

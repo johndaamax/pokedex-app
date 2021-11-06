@@ -18,7 +18,7 @@ import Select from '../../util/Select';
 import Tooltip from '../../util/Tooltip';
 import { levelingRateData } from '../../util/helperData';
 
-import { Wrapper } from '../../styles/shared';
+import { WrapperDiv } from '../../styles/shared';
 import {
   typeColors,
   pokemonBackgroundColors,
@@ -26,6 +26,22 @@ import {
   statColors
 } from '../../styles/styles';
 
+const WrapperExtend = styled(WrapperDiv)`
+  .content-section {
+    background-color: ${props => props.color};
+    border: 1px solid ${props => props.border};
+    padding: 0.6em 0.8em;
+    border-radius: 4px;
+
+    h2 {
+      margin: 0.3em 0;
+    }
+  }
+
+  .resp-scroll {
+    overflow-x: auto;
+  }
+`;
 const PokeName = styled.div`
     display: flex;
     justify-content: center;
@@ -82,7 +98,7 @@ const NavAdjacentSection = styled.section`
 
     figure {
         display: flex;
-        margin: 3px 12px;
+        margin: 0.15em 0.4em;
         width: 100%;
         justify-content: space-between;
         align-items: center;
@@ -169,33 +185,15 @@ const TypeDiv = styled.div`
 `;
 const Summary = styled.div`
     width: 55%;
-    min-width: 375px;
     margin: 0 auto;
-
     > div {
       margin-bottom: 1rem;
-    }
-
-    .content-section {
-        background-color: ${props => props.color};
-        border: 1px solid ${props => props.border};
-        padding: 0.6em;
-        border-radius: 4px;
-
-        h2 {
-          margin: 0.3em 0;
-        }
-    }
-
-    .resp-scroll {
-      overflow-x: auto;
     }
 
     .minor{
         display: flex;
         flex-direction: row;
         justify-content: space-between;
-
         > div {
             width: 49%;
             margin: 0;
@@ -206,7 +204,7 @@ const Summary = styled.div`
     }
 
     @media (max-width: 768px) {
-        min-width: 90%;  
+        width: 100%;  
     } 
 `;
 const AbilityDiv = styled.div`
@@ -322,18 +320,18 @@ const Pokemon = ({ pokemon }) => {
     //which, at full HP values simplifies to 
     //pct = (1/3 * (catchRate * ballBonus * statusBonus)) / 255
     //then, we multiply by 100 to get the percentage and format to 2 decimal points
-    return ((((catchRate * ballBonus * statusBonus) / 3) / 255) * 100).toFixed(2)
+    return ((((catchRate * ballBonus * statusBonus) / 3) / 255) * 100).toFixed(2);
   }
 
   const getHatchStepsRange = (cycles) => {
     //the amount of steps a pokemon requires to hatch from an egg
     //an egg cycle is 257 steps in Generation VIII
-    return `${257 * (cycles - 1) + 1}-${257 * cycles}`
+    return `${257 * (cycles - 1) + 1}-${257 * cycles}`;
   }
 
   return (
     <Layout>
-      <Wrapper color={wrapperBackground}>
+      <WrapperExtend color={wrapperBackground}>
         <Head>
           <title>Overview of {_.capitalize(name)}</title>
         </Head>
@@ -349,7 +347,7 @@ const Pokemon = ({ pokemon }) => {
           }
         </PokeName>
         <NavAdjacentSection>
-          <div className="prev">
+          <div className='prev'>
             {state.allPokemon[previousPoke - 1] &&
               <Link href={`/pokemon/${previousPoke}`}>
                 <a>
@@ -366,7 +364,7 @@ const Pokemon = ({ pokemon }) => {
               </Link>
             }
           </div>
-          <div className="next">
+          <div className='next'>
             {state.allPokemon[nextPoke - 1] &&
               <Link href={`/pokemon/${nextPoke}`}>
                 <a>
@@ -402,7 +400,7 @@ const Pokemon = ({ pokemon }) => {
           <Summary color={primaryBackground} border={secondaryBorder}>
             <div className='content-section summary-stats'>
               <h2>Pokémon Summary</h2>
-              <InfoBox type="Type">
+              <InfoBox type='Type'>
                 {types.map(t =>
                   <TypeDiv type={t.type.name} key={t.type.name}>{t.type.name}</TypeDiv>)
                 }
@@ -480,7 +478,7 @@ const Pokemon = ({ pokemon }) => {
             </div>
           </Summary>
         </PokeDetails>
-        <div>
+        <div className='content-section'>
           <h2>Moves</h2>
           <small>(*) All moves displayed are of Generation VII Ultra Sun/Ultra Moon Pokemon games.</small>
           {
@@ -499,7 +497,7 @@ const Pokemon = ({ pokemon }) => {
               />))
           }
         </div>
-      </Wrapper>
+      </WrapperExtend>
     </Layout>
   )
 }
