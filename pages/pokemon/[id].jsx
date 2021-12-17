@@ -303,7 +303,7 @@ const Pokemon = ({ pokemon }) => {
 
   const getAbilityText = (ability) => {
     const { effectTexts } = ability;
-    return effectTexts[0].effect || 'Ability description not available.';
+    return effectTexts[0]?.effect || 'Ability description not available.';
   }
 
   const handleDropdownChange = (option) => {
